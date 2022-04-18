@@ -1,5 +1,5 @@
-# H1 vvipr
-# H2 Verify VIAME Predictions
+#  vvipr
+## Verify VIAME Predictions
 
 This code is developed as a Shiny app to assist with comparing image classification model output from VIAME software with "truth" annotations to assess model performance with a suite of performance metrics.
 
