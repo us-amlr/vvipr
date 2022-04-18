@@ -1,7 +1,7 @@
 #  vvipr
 ## Verify VIAME Predictions
 
-This code is developed as a Shiny app to assist with comparing image classification model output from [VIAME](https://www.viametoolkit.org/) software with "truth" annotations to assess model performance with a suite of performance metrics.
+This code is developed as a [Shiny app](https://shiny.rstudio.com/) to assist with comparing image classification model output from [VIAME](https://www.viametoolkit.org/) software with "truth" annotations to assess model performance with a suite of performance metrics. At present, the code supports object detections within image frames for any number of object classes.
 
 The code takes two .csv files as input. One is the set of truth annotations, the other is the set of predictions from a trained model. You then can select appropriate cut-offs for retention of model predictions, and the amount of overlap between truth and prediction bounding boxes that are required to classify detections as true positives, false positives, or false negatives. The code will compute 4 model performance metrics: accuracy, precision, recall, and the F1 score. 
 

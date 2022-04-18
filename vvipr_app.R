@@ -98,7 +98,6 @@ server<-function(input, output, session){
   source('trans_col.R')
   library(sf)
   library(sfheaders)
-  library(RColorBrewer)
   data<-reactive({
     req(input$truth)
     truth<-read.csv(file=input$truth$datapath, skip=2, header=FALSE)

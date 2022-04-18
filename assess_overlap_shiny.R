@@ -1,8 +1,6 @@
 assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_detections.csv", conf.thresh=0, over1=0.5, over2=0.5, PLOT=FALSE){
-library(dplyr)
 library(sf)
 library(sfheaders)
-library(RColorBrewer)
 # read in a csv that combines the truth and prediction coordinates with unique detection IDs for each
 #truth<-read.csv(f1, skip=2, header=FALSE)
 #prediction<-read.csv(f2, skip=2, header=FALSE)
