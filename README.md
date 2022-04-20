@@ -16,7 +16,7 @@ Where:
 **F1** = *TP/(TP+0.5(FP+FN))*
 
 
-Optionally, the user can visualize the location and overlap of truth and predicted classes in teh image (the image itself is not plotted) by selecting an image number and object class from the appropriate drop-downs. Image and class options are generated from the input "truth" file once the `Enable plots` button has been clicked. Images that do not contain a specified class will result in no plot. 
+Optionally, the user can visualize the location and overlap of truth and predicted classes in the image (the image itself is not plotted) by selecting an image number and object class from the appropriate drop-downs. Image and class options are generated from the input "truth" file once the `Enable plots` button has been clicked. Images that do not contain a specified class will result in no plot. 
 
 ## General idea of the analysis
 
