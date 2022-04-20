@@ -14,7 +14,7 @@ p.classes<-unique(prediction$CLASS)
 #prediction$DETECTION_ID<-seq(from=max(truth$DETECTION_ID)+1000, by=1, length.out=length(prediction$IMAGE))
 # ensure classes for truth and predictions are identical
 if(!identical(t.classes, p.classes)){
-    stop("Truth and Annotation class names do not match. This code requires matching names for comparing.")
+    warning("Truth and Annotation class names do not match. This code requires matching names for comparing.")
 }
 
 # create numeric code to allow matching of classes

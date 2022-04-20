@@ -20,9 +20,9 @@ plot_image_class<-function(truth, prediction, conf.thresh=0, over1=0.5, over2=0.
   # the prediction DETECTION_IDs need to be different than the truth ID
   #prediction$DETECTION_ID<-seq(from=max(truth$DETECTION_ID)+1000, by=1, length.out=length(prediction$IMAGE))
   # ensure classes for truth and predictions are identical
-  if(!identical(t.classes, p.classes)){
-    stop("Truth and Annotation class names do not match. This code requires matching names for comparing.")
-  }
+  #if(!identical(t.classes, p.classes)){
+  #  warning("Truth and Annotation class names do not match. This code requires matching names for comparing.")
+  #}
   
   # create numeric code to allow matching of classes
   index<-data.frame(CLASS=t.classes, INDEX=1:n.classes)
