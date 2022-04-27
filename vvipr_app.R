@@ -14,7 +14,7 @@ ui<-fluidPage(
                h1("vvipr", style="text-align:center"),
                h2("Verify VIAME Predictions", style="text-align:center"),
                p(style="text-align:center", "Evauluate VIAME predictions against truth annotations"),
-               p(style="text-align:center","Last updated: 20 April 2022"))
+               p(style="text-align:center","Last updated: 27 April 2022"))
       ),
       
       hr(),
@@ -47,7 +47,7 @@ ui<-fluidPage(
       fluidRow(
         column(12,
                numericInput(inputId="over1", 
-                            label="4. Choose minimum overlap of prediciton and truth for accepting",
+                            label="4. Choose minimum overlap of predicition and truth for accepting",
                             value=0.5, min=0, max=0.99, step=0.01)),
       ),
       
