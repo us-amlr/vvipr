@@ -47,14 +47,14 @@ ui<-fluidPage(
       fluidRow(
         column(12,
                numericInput(inputId="over1", 
-                            label="4. Choose minimum overlap of predicition and truth for accepting",
+                            label="4. Choose minimum proportion of truth overlap for accepting",
                             value=0.5, min=0, max=0.99, step=0.01)),
       ),
       
       fluidRow(
         column(12,
                numericInput(inputId="over2", 
-                            label="5. Choose minimum overlap of shared area and predicted area for accepting",
+                            label="5. Choose minimum proportion of prediction overlap for accepting",
                             value=0.5, min=0, max=0.99, step=0.01)),
       ),
       
