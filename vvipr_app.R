@@ -63,11 +63,11 @@ ui<-fluidPage(
       ),
       
       fluidRow(
-        column(12, selectInput("image", "6. Select image to plot", choices=list("Check plot button to update list"))),
+        column(12, selectInput("image", "6. Select image to plot", choices=list("Click 'Enable plots' to update list"))),
        ),
   
       fluidRow(
-        column(12, selectInput("class", "7. Select annotation class to plot", choices=list("Check plot button to update list"))),
+        column(12, selectInput("class", "7. Select annotation class to plot", choices=list("Click 'Enable plots' to update list"))),
        ),
   
       fluidRow(
@@ -99,6 +99,10 @@ server<-function(input, output, session){
   library(sf)
   library(sfheaders)
   data<-reactive({
+    validate(
+      need(input$truth, "Please select a truth annotation file."),
+      need(input$prediction, "Please select a model prediction file.")
+    )
     req(input$truth)
     truth<-read.csv(file=input$truth$datapath, skip=2, header=FALSE)
     prediction<-read.csv(file=input$prediction$datapath, skip=2, header=FALSE)
@@ -154,6 +158,9 @@ server<-function(input, output, session){
     sf_data
     })
     output$plots<-renderPlot({
+    validate(
+      need(input$image!="Click 'Enable plots' to update list", "Please enable plots.")
+    )
     #dat.list <- data()
     sf_out<-sf_out_reactive()
     MAIN<-paste("Image: ", input$image,  "  Class: ", input$class, sep="")
