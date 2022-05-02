@@ -72,7 +72,7 @@ ui<-fluidPage(
   
       fluidRow(
         column(12, downloadButton("downloadData", "Download results"),
-             p("Download the table of results generated below.")),
+             p("Download the table of results.")),
       ),
     ),
     
@@ -170,10 +170,10 @@ server<-function(input, output, session){
   output$downloadData <- downloadHandler(
     #output$result<-downloadHandler(  
     filename = function() {
-      paste(input$conf.thresh, ".csv", sep = "")
+      paste("vvipr_output_ct-", input$conf.thresh, ".csv", sep = "")
     },
     content = function(file) {
-      write.csv(reac_func_output(), file, row.names=FALSE)
+      write.csv(reac_func_output()[[1]], file, row.names=FALSE)
     }
   )
 }
