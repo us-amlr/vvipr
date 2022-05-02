@@ -11,7 +11,7 @@ n.classes<-length(t.classes)
 p.classes<-unique(prediction$CLASS)
 #
 # the prediction DETECTION_IDs need to be different than the truth ID
-#prediction$DETECTION_ID<-seq(from=max(truth$DETECTION_ID)+1000, by=1, length.out=length(prediction$IMAGE))
+prediction$DETECTION_ID<-seq(from=max(truth$DETECTION_ID)+1000, by=1, length.out=length(prediction$IMAGE))
 # ensure classes for truth and predictions are identical
 if(!identical(t.classes, p.classes)){
     warning("Truth and Annotation class names do not match. This code requires matching names for comparing.")
@@ -41,10 +41,13 @@ annos<-annos[annos$CONF>conf.thresh,]
 #
 out_image<-list() 
 fp<-list()
+FP_IDS<-numeric()
+out_classes<-list()
 for(i in 1:n.images){
   tt.test<-annos[annos$PIC_NAME==images[i],]
   # now run analyses for each class of object detected
   class_out<-list()
+  tp_classes<-list()
   false_positives<-numeric()
   for(k in 1:n.classes){
     test<-tt.test[tt.test$INDEX==k,]
@@ -62,8 +65,6 @@ for(i in 1:n.images){
       }
     } else {
       k_classes<-length(unique(test$CLASS))
-      #print(unique(test$CLASS))
-      #print(c(k_classes, n.classes))
       if(k_classes!=2){
         #print("here - fail 2")
         # filtering likely caused a predicted class to no longer be present. Thus, no predictions available to assess
@@ -103,11 +104,24 @@ for(i in 1:n.images){
         for(j in 1:nclass){
           classes[[j]]<-x[x$CLASS==class.names[j],]
         }
+        #pass out the truth and prediction lists for class k in image i
+        tp_classes[[k]]<-classes
+        names(tp_classes)[[k]]<-t.classes[k]
         # now assess overlap of the classes
         # need to know which classes should overlap (i.e., penguin annotation with penguin prediction, but not with seal prediction!)
         # use st_intersects(obj1, obj2, sparse=FALSE) for basic analysis of clearly unique polygons
         x<-st_intersects(classes[[2]], classes[[1]], sparse=FALSE)
         xx<-apply(x, 1, any)
+        # identify each polygon in the prediction class that is a clear FP as such
+        # what polygon ID are we working with
+        indx<-rep(NA, length(classes[[2]][,1]))
+        indx<-ifelse(xx, NA, "FP")
+        #
+        FP_IDS<-c(FP_IDS, classes[[2]]$ID[!xx])
+        # will later update the class[[2]]$TYPE index based on evaluation of area overlap below
+        classes[[2]]$TYPE<-indx
+        # for later merging, also add the TYPE index to classes[[1]]
+        classes[[1]]$TYPE<-NA
         # length will give the number of false positives, assuming predictions are the first geometry and truth is in the second
         # this only account for the polygons that exhibit no overlap. 
         false_positives[k]<-length(xx[xx==FALSE])
@@ -135,10 +149,10 @@ for(i in 1:n.images){
         tt.int<-merge(tt.int, tt.c2.merge, by="ID", sort=FALSE)
         tt.int<-merge(tt.int, tt.c1.merge, by="ID.1", sort=FALSE)
         #
-        # Save out the dataframe for later analysis
+        # Save out the data frame for later analysis
         # delete any "overlaps" with an overlap area of zero - these are "lines" and not useful for assessing
         tt.int<-tt.int[tt.int$OVERLAP_AREA>0,]
-        # assess percetn of overlap that the prediction and annotation have
+        # assess percent of overlap that the prediction and annotation have
         # we expect a good prediction to mostly overlap the annotated area. if the overlap is poor - reject as true prediction and become False negative
         tt.int$PROP_OVERLAP<-tt.int$OVERLAP_AREA/tt.int$ANNO_AREA
         # also assess how much of prediction is in the overlap aera. 
@@ -152,49 +166,26 @@ for(i in 1:n.images){
         class_out[[k]]<-tt.int
         # 
         # the output is a data frame that identifies the polygon ids from the truth and prediction that overlap
-        # if prediction overlaps iwth more than one, the overlap is indicated by addition of 0.1 
+        # if prediction overlaps with more than one, the overlap is indicated by addition of 0.1 
         # example, if prediction 10 overlaps with truth 46 and 47, each overlap is presented as 10 overlaps with 46, 10.1 overlaps with 47, etc. 
         # in some cases overlap is represented by a line, if so, then geometry indicates repeated x or y coordinates, depending on orientation - those could be deleted)
         # for plotting set appropriate xlim and ylim values from bounding box of preds and truth polygons
         XLIM<-range(DTlong$X)
         YLIM=range(DTlong$Y)
-        #auxiliary function for color
-        #
-        ## Transparent colors
-        ## Mark Gardener 2015
-        ## www.dataanalytics.org.uk
-        
-        t_col <- function(color, percent = 60, name = NULL) {
-          #      color = color name
-          #    percent = % transparency
-          #       name = an optional name for the color
-          
-          ## Get RGB values for named color
-          rgb.val <- col2rgb(color)
-          
-          ## Make new color using input color as base and alpha set by transparency
-          t.col <- rgb(rgb.val[1], rgb.val[2], rgb.val[3],
-                       max = 255,
-                       alpha = (100 - percent) * 255 / 100,
-                       names = name)
-          
-          ## Save the color
-          invisible(t.col)
-        }
         # view the polygons
-        N=ifelse(nclass<3, 3, nclass) # catch since brewer pal requires at least 3 
+        #N=ifelse(nclass<3, 3, nclass) # catch since brewer pal requires at least 3 
         #for now, set 2 colors for three classes within truth/prediction annotations
         pick.colors=c("red", "blue")
         #cols<-brewer.pal(n=N, name="Set1")
         if(PLOT){
           windows()
-          t.col<-t_col(color=pick.colors[1])
+          t.col<-trans_col(color=pick.colors[1])
           MAIN<-paste(t.classes[k], "_", images[i], sep="")
           plot(classes[[1]]$geometry, xlim=XLIM, ylim=YLIM, border=1, col=t.col, main=MAIN)
           if(length(nclass>1)){
             for(j in 2:nclass){
               #mycol <- rgb(0, 0, 255, max = 255, alpha = 125) # create a transparent blue for the truth
-              t.col<-t_col(color=pick.colors[j])
+              t.col<-trans_col(color=pick.colors[j])
               plot(classes[[j]]$geometry, add=TRUE, border=1, col=t.col)
             }
           }
@@ -203,6 +194,7 @@ for(i in 1:n.images){
     }
   }
   out_image[[i]]<-class_out
+  out_classes[[i]]<-tp_classes
   fp[[i]]<-false_positives
 }
 
@@ -231,7 +223,6 @@ for(i in 1:n.images){
       names(n_occur)<-c("ID.1", "MULTI_TRUTH")
       t.dat<-merge(t.dat, n_occur, by="ID.1", all=TRUE, sort=TRUE)
    
-      # find predictions that overlap more than one truth
       n_occur<-data.frame(table(t.dat$ID))
       n_occur<-n_occur[n_occur$Freq>1,]
       names(n_occur)<-c("ID", "MULTI_PRED")
@@ -243,15 +234,11 @@ for(i in 1:n.images){
       t.dat$REGULAR<-t.dat$MULTI_TRUTH+t.dat$MULTI_PRED
       t.dat$REGULAR<-ifelse(t.dat$REGULAR>0, 0,1)
 
-      # use REGULAR to assess simple FP rate
+      # use REGULAR to assess simple FP rate of one prediction to one truth overlaps
       fn<-paste("intersections_f",i,"group",j, ".csv", sep="")
       #write.csv(t.dat, fn)
-      
-       #over1<-0.48 # for 1:1 overlaps (1 annotation and 1 prediction), overlap should be at least this high  --> a FP results
-       #over2<-0.48 #
-      
       fp_scenario<-numeric()
-      tt.dat<-t.dat[t.dat$REGULAR==1,]
+      tt.dat<-t.dat[t.dat$REGULAR==1,] # regular overlap indicates one:one truth and prediction annotations
       # check if any data exist
       if(dim(tt.dat)[1]==0){
         # assign no fp for scenario 1 if no data exist
@@ -262,8 +249,10 @@ for(i in 1:n.images){
         s2<-ifelse(tt.dat$PROP_PRED_OVERLAP<over2, 1,0)
         s3<-s1+s2
         fp_scenario[1]<-length(s3[s3>1])
+        fpid<-tt.dat$ID[s3>1]
+        FP_IDS<-c(FP_IDS, fpid)
       }
-      # now add FP for scenario 2 - where one prediction overlaps n annotations. 
+      # now add FP for scenario 2 - where n predictions overlaps 1 annotations.  
       # assume only annotation that overlaps the most is worth counting, then assess it's overlap as above
       tt.dat<-t.dat[t.dat$REGULAR==0,]
       tt.dat<-tt.dat[tt.dat$MULTI_TRUTH>1,]
@@ -276,7 +265,6 @@ for(i in 1:n.images){
         # now assess which of the overlaps to keep for assessment as FP and which to discard are incidental overlap
         n.overlaps<-length(unique(tt.dat$ID.1))
         overlaps<-unique(tt.dat$ID.1)
-        #print(n.overlaps)
         fpk<-0
         fpcount<-0
         for(k in 1:n.overlaps){
@@ -290,6 +278,8 @@ for(i in 1:n.images){
           fp.dat<-ttt.dat[ttt.dat$KEEP==0,]
           # if fp.dat$MULTI_PRED==0, add one FP to the tally
           tt.fp<-length(fp.dat$MULTI_PRED[fp.dat$MULTI_PRED==0])
+          fpid<-fp.dat$ID[fp.dat$MULTI_PRED==0]
+          FP_IDS<-c(FP_IDS, fpid)
           fpcount<-fpcount+tt.fp
           # now assess the "better" predictions to see if they meet FP criteria
           ttt.dat<-ttt.dat[ttt.dat$KEEP==1,]
@@ -298,11 +288,13 @@ for(i in 1:n.images){
           s2<-ifelse(ttt.dat$PROP_PRED_OVERLAP<over2, 1,0)
           s3<-s1+s2
           fpk<-fpk+length(s3[s3>1])
+          fpid<-ttt.dat$ID[s3>1]
+          FP_IDS<-c(FP_IDS, fpid)
         }
         # add up the false positives counted here
         fp_scenario[2]<-fpk+fpcount
       }
-      # now the final       
+      # now the final test where  1 prediction overlap n annotations      
       tt.dat<-t.dat[t.dat$REGULAR==0,]
       tt.dat<-tt.dat[tt.dat$MULTI_PRED>1,]
       # check if any data exist
@@ -329,9 +321,10 @@ for(i in 1:n.images){
           s2<-ifelse(ttt.dat$PROP_PRED_OVERLAP<over2, 1,0)
           s3<-s1+s2
           fpk<-fpk+length(s3[s3>1])
+          fpid<-ttt.dat$ID[s3>1]
+          FP_IDS<-c(FP_IDS, fpid)
         }
         fp_scenario[3]<-fpk
-        #print(fp_scenario)
       }
     }
     fps[j]<-sum(fp_scenario)
@@ -369,8 +362,6 @@ FP<-sum(total$fp)
 ANNO<-sum(total$anno)
 PREDS<-sum(total$preds)
 # now solve uniroot function
-#print(c(FP, ANNO, PREDS))
-
 fun<-uniroot(fill_matrix, interval=c(0,1000), fp=FP, anno=ANNO, preds=PREDS)
 fvals<-vals(x=fun$root, FP, ANNO)
 # calcualte the model performance metrics based on fp, fn, and tp counts
@@ -381,6 +372,10 @@ accur<-tp/(tp+fp+fn)
 prec<-tp/(tp+fp)
 recall<-tp/(tp+fn)
 f1<-tp/(tp+0.5*(fp+fn))
-res<-data.frame(CONF=conf.thresh, OVER1=over1, OVER2=over2, FP=fp, FN=fn, TP=tp, ANNO=ANNO, PREDS=PREDS, ACCURACY=accur, PRECISION=prec, RECALL=recall,F1=f1)
-return(res)
+res<-list()
+res[[1]]<-data.frame(CONF=conf.thresh, OVER1=over1, OVER2=over2, FP=fp, FN=fn, TP=tp, ANNO=ANNO, PREDS=PREDS, ACCURACY=accur, PRECISION=prec, RECALL=recall,F1=f1)
+res[[2]]<-out_classes
+res[[3]]<-FP_IDS
+res[[4]]<-index
+res
 }

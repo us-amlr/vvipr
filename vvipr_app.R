@@ -14,7 +14,7 @@ ui<-fluidPage(
                h1("vvipr", style="text-align:center"),
                h2("Verify VIAME Predictions", style="text-align:center"),
                p(style="text-align:center", "Evauluate VIAME predictions against truth annotations"),
-               p(style="text-align:center","Last updated: 27 April 2022"))
+               p(style="text-align:center","Last updated: 2 May 2022"))
       ),
       
       hr(),
@@ -47,14 +47,14 @@ ui<-fluidPage(
       fluidRow(
         column(12,
                numericInput(inputId="over1", 
-                            label="4. Choose minimum proportion of truth overlap for accepting",
+                            label="4. Choose minimum overlap of predicition and truth for accepting",
                             value=0.5, min=0, max=0.99, step=0.01)),
       ),
       
       fluidRow(
         column(12,
                numericInput(inputId="over2", 
-                            label="5. Choose minimum proportion of prediction overlap for accepting",
+                            label="5. Choose minimum overlap of shared area and predicted area for accepting",
                             value=0.5, min=0, max=0.99, step=0.01)),
       ),
       
@@ -107,9 +107,21 @@ server<-function(input, output, session){
     names(prediction)<-NAMES
     prediction$DETECTION_ID<-seq(from=max(truth$DETECTION_ID)+1000, by=1, length.out=length(prediction$IMAGE))
     classes_to_use<-unique(truth$CLASS)
+    # enforce consecutive numbering of truth images from 1 to n
+    x<-unique(truth$IMAGE)
+    n.x<-length(x)
+    z<-as.vector(table(truth$IMAGE))
+    truth$IMAGE<-rep(1:n.x, z)
+    # enforce consecutive numbering of truth images from 1 to n
+    x<-unique(prediction$IMAGE)
+    n.x<-length(x)
+    z<-as.vector(table(prediction$IMAGE))
+    prediction$IMAGE<-rep(1:n.x, z)
+    #
     images<-as.list(unique(truth$IMAGE))
     list(truth, prediction, classes_to_use, images)
     })
+  
   observeEvent(input$plot.me, {
     updateSelectInput(session, inputId="class", "Select annotation class to plot", choices=data()[[3]])
     updateSelectInput(session, inputId="image", "Select image to plot", choices=data()[[4]])
@@ -123,9 +135,10 @@ server<-function(input, output, session){
     out<-assess_overlap_shiny(truth=dat.list[[1]], prediction=dat.list[[2]], conf.thresh=input$conf.thresh, over1=input$over1, over2=input$over2)
     out
   })
+  
   output$result<-renderTable({
     #req(input$table_type)
-    dat.list <- reac_func_output()
+    print.list <- reac_func_output()[[1]]
   })
   
   sf_out_reactive<-reactive({
@@ -134,20 +147,23 @@ server<-function(input, output, session){
     #req(input$over2)
     req(input$image)
     req(input$class)
+    #dat.list <- data()
     dat.list <- data()
-    sf_data<-plot_image_class(truth=dat.list[[1]], prediction=dat.list[[2]], conf.thresh=input$conf.thresh, over1=input$over1, over2=input$over2, image=input$image, class=input$class)# flesh out code/function to plot overlap of selected class from selected image
+    plot.list<-reac_func_output()
+    sf_data<-plot_image_class(dat1=plot.list[[2]], dat2=plot.list[[3]], dat3=plot.list[[4]], conf.thresh=input$conf.thresh, over1=input$over1, over2=input$over2, image=input$image, class=input$class)# flesh out code/function to plot overlap of selected class from selected image
     sf_data
     })
     output$plots<-renderPlot({
-    dat.list <- data()
+    #dat.list <- data()
     sf_out<-sf_out_reactive()
     MAIN<-paste("Image: ", input$image,  "  Class: ", input$class, sep="")
-    t.col1<-trans_col(color="red")
+    t.col1<-trans_col(color="black", percent=33)
     plot(sf_out[[1]]$geometry, border=1, col=t.col1, main=MAIN)
-    t.col2<-trans_col(color="blue")
+    t.col2<-trans_col(color="red", percent=60)
     plot(sf_out[[2]]$geometry, add=TRUE, border=1, col=t.col2)
-    t.col3<-trans_col(color="purple", percent=0.33)
-    legend(x="bottomleft", pch=c(15,15,15), col=c(t.col1, t.col2, t.col3), cex=2, legend=c("Truth", "Prediction", "Areas of overlap"), bty="n")
+    t.col3<-trans_col(color="blue", percent=60)
+    plot(sf_out[[3]]$geometry, add=TRUE, border=1, col=t.col3)
+    legend(x="bottomleft", pch=c(15,15,15), col=c(t.col1, t.col2, t.col3), cex=2, legend=c("Truth", "False positive", "True positive"), bty="n")
     box()
     mtext("Image only responds to image, class, and confidence threshold inputs", side=1)
   })
