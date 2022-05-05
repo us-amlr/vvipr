@@ -6,7 +6,7 @@ library(sfheaders)
 #prediction<-read.csv(f2, skip=2, header=FALSE)
 #names(truth)<-c("DETECTION_ID","PIC_NAME", "IMAGE", "TLX", "TLY", "BRX", "BRY","CONF", "TARGET", "CLASS", "CONF_2")
 #names(prediction)<-c("DETECTION_ID","PIC_NAME", "IMAGE", "TLX", "TLY", "BRX", "BRY","CONF", "TARGET", "CLASS", "CONF_2")
-#
+  
 t.classes<-unique(truth$CLASS)
 n.classes<-length(t.classes)
 p.classes<-unique(prediction$CLASS)

@@ -17,7 +17,7 @@ plot_image_class<-function(dat1, dat2, dat3, conf.thresh, over1, over2, image, c
       tp<-class[[j]][!(class[[j]]$ID%in%dat2),]
     }
   }
-  
+
   res<-list(truth, fp, tp) 
   
   res
