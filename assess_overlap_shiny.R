@@ -6,12 +6,13 @@ library(sfheaders)
 #prediction<-read.csv(f2, skip=2, header=FALSE)
 #names(truth)<-c("DETECTION_ID","PIC_NAME", "IMAGE", "TLX", "TLY", "BRX", "BRY","CONF", "TARGET", "CLASS", "CONF_2")
 #names(prediction)<-c("DETECTION_ID","PIC_NAME", "IMAGE", "TLX", "TLY", "BRX", "BRY","CONF", "TARGET", "CLASS", "CONF_2")
+
 t.classes<-unique(truth$CLASS)
 n.classes<-length(t.classes)
 p.classes<-unique(prediction$CLASS)
 #
 # the prediction DETECTION_IDs need to be different than the truth ID
-prediction$DETECTION_ID<-seq(from=max(truth$DETECTION_ID)+1000, by=1, length.out=length(prediction$IMAGE))
+#prediction$DETECTION_ID<-seq(from=max(truth$DETECTION_ID)+1000, by=1, length.out=length(prediction$IMAGE))
 # ensure classes for truth and predictions are identical
 if(!identical(t.classes, p.classes)){
     warning("Truth and Annotation class names do not match. This code requires matching names for comparing.")
