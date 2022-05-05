@@ -374,7 +374,7 @@ prec<-tp/(tp+fp)
 recall<-tp/(tp+fn)
 f1<-tp/(tp+0.5*(fp+fn))
 res<-list()
-res[[1]]<-data.frame(CONF=conf.thresh, OVER1=over1, OVER2=over2, FP=fp, FN=fn, TP=tp, ANNO=ANNO, PREDS=PREDS, ACCURACY=accur, PRECISION=prec, RECALL=recall,F1=f1)
+res[[1]]<-data.frame(CONF=conf.thresh, TRUTH_OVERLAP=over1, PREDICTION_OVERLAP=over2, FP=fp, FN=fn, TP=tp, ANNO=ANNO, PREDS=PREDS, ACCURACY=accur, PRECISION=prec, RECALL=recall,F1=f1)
 res[[2]]<-out_classes
 res[[3]]<-FP_IDS
 res[[4]]<-index

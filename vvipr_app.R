@@ -39,11 +39,11 @@ ui<-fluidPage(
                    value=0, min=0, max=0.99, step=0.01),
 
       numericInput(inputId="over1",
-                   label="4. Enter minimum overlap of predicition and truth for accepting",
+                   label="4. Enter minimum proportion of truth area needed for overlap (Truth overlap)",
                    value=0.5, min=0, max=0.99, step=0.01),
 
       numericInput(inputId="over2",
-                   label="5. Enter minimum overlap of shared area and predicted area for accepting",
+                   label="5. Enter minimum proportion of predicted area needed for overlap (Prediction overlap)",
                    value=0.5, min=0, max=0.99, step=0.01),
 
       hr(),
