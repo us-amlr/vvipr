@@ -195,6 +195,7 @@ server<-function(input, output, session){
     legend(x=input$legend_pos, pch=c(15,15,15), col=c(t.col1, t.col2, t.col3), cex=2,
            legend=c("Truth", "False positive", "True positive"), bty="n")
     box()
+    #
   })
   output$downloadData <- downloadHandler(
     filename = function() {
