@@ -1,4 +1,5 @@
-assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_detections.csv", conf.thresh=0, over1=0.5, over2=0.5, PLOT=FALSE){
+assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_detections.csv", 
+                               conf.thresh=0, over1=0.5, over2=0.5, PLOT=FALSE){
   library(sf)
   library(sfheaders)
   # read in a csv that combines the truth and prediction coordinates with unique detection IDs for each
@@ -43,7 +44,6 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
   FP_IDS<-numeric()
   out_classes<-list()
   
-  
   for(i in 1:n.images){
     tt.test<-annos[annos$PIC_NAME==images[i],]
     # now run analyses for each class of object detected
@@ -59,11 +59,7 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
         # if the class is utterly absent
         class_out[[k]]<-NA
         false_positives[k]<-0
-        if(PLOT){
-          XLAB<-paste("No objects of class ", p.classes[k], " present", sep="")
-          windows()
-          plot(0,0, main=images[i], type="n", xlab=XLAB)
-        }
+
       } else {
         k_classes<-length(unique(test$CLASS))
         if(k_classes!=2){
@@ -72,11 +68,7 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
           # again, set 
           class_out[[k]]<-NA
           false_positives[k]<-0
-          if(PLOT){
-            XLAB<-paste("No objects of class ", p.classes[k], " present", sep="")
-            windows()
-            plot(0,0, main=images[i], type="n", xlab=XLAB)
-          }
+          
         } else {
           #print("here - normal")
           # build polygons from coordinates indicating bottom left x and y and top right x and y
@@ -89,8 +81,8 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
           for(j in 1:n.polys){
             dat<-test[j,] # select ith row of data
             out[[j]]<-data.frame(ID=dat$DETECTION_ID,
-                                 X=c(dat$TLX,dat$BRX, dat$BRX, dat$TLX, dat$TLX),
-                                 Y=c(dat$TLY, dat$TLY, dat$BRY, dat$BRY, dat$TLY))
+                                 X=c(dat$TLX, dat$BRX, dat$BRX, dat$TLX, dat$TLX),
+                                 Y=-c(dat$TLY, dat$TLY, dat$BRY, dat$BRY, dat$TLY))
             class[[j]]<-dat$CLASS
           }
           DTlong<-do.call("rbind", out)
@@ -152,7 +144,7 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
           #
           # Save out the data frame for later analysis
           # delete any "overlaps" with an overlap area of zero - these are "lines" and not useful for assessing
-          tt.int<-tt.int[tt.int$OVERLAP_AREA>0,]
+          #tt.int<-tt.int[tt.int$OVERLAP_AREA>0,]
           # assess percent of overlap that the prediction and annotation have
           # we expect a good prediction to mostly overlap the annotated area. if the overlap is poor - reject as true prediction and become False negative
           tt.int$PROP_OVERLAP<-tt.int$OVERLAP_AREA/tt.int$ANNO_AREA
@@ -162,7 +154,7 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
           # or for the prediction to be mostly represented in the overlap area
           tt.int$PROP_PRED_OVERLAP<-tt.int$OVERLAP_AREA/tt.int$PRED_AREA
           tt.int<-tt.int[order(tt.int$ID),]
-          fn<-paste("intersections_f",i,"group",k, ".csv", sep="")
+          #fn<-paste("intersections_f",i,"group",k, ".csv", sep="")
           #write.csv(tt.int, fn)
           class_out[[k]]<-tt.int
           # 
@@ -170,27 +162,6 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
           # if prediction overlaps with more than one, the overlap is indicated by addition of 0.1 
           # example, if prediction 10 overlaps with truth 46 and 47, each overlap is presented as 10 overlaps with 46, 10.1 overlaps with 47, etc. 
           # in some cases overlap is represented by a line, if so, then geometry indicates repeated x or y coordinates, depending on orientation - those could be deleted)
-          # for plotting set appropriate xlim and ylim values from bounding box of preds and truth polygons
-          XLIM<-range(DTlong$X)
-          YLIM=range(DTlong$Y)
-          # view the polygons
-          #N=ifelse(nclass<3, 3, nclass) # catch since brewer pal requires at least 3 
-          #for now, set 2 colors for three classes within truth/prediction annotations
-          pick.colors=c("red", "blue")
-          #cols<-brewer.pal(n=N, name="Set1")
-          if(PLOT){
-            windows()
-            t.col<-trans_col(color=pick.colors[1])
-            MAIN<-paste(t.classes[k], "_", images[i], sep="")
-            plot(classes[[1]]$geometry, xlim=XLIM, ylim=YLIM, border=1, col=t.col, main=MAIN)
-            if(length(nclass>1)){
-              for(j in 2:nclass){
-                #mycol <- rgb(0, 0, 255, max = 255, alpha = 125) # create a transparent blue for the truth
-                t.col<-trans_col(color=pick.colors[j])
-                plot(classes[[j]]$geometry, add=TRUE, border=1, col=t.col)
-              }
-            }
-          }
         }
       }
     }
@@ -206,11 +177,9 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
   # will apply a function for each image and class
   new_fp<-list()
   for(i in 1:n.images){
-    #print(images[i])
     dat<-out_image[[i]]
     fps<-numeric()# should house n values (1 for each class annotated) 
     for(j in 1:n.classes){
-      #print(j)
       t.dat<-dat[[j]]
       t.dat.dim<-dim(t.dat)[1]
       t.dat.dim<-ifelse(is.null(t.dat.dim),0,t.dat.dim)
@@ -218,7 +187,10 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
         # is_sf is a custom function to ensure only sf object (data with polygons) is passed along. 
         # if a particular class has no observations, assign 0 false positives to it's space
         fps[j]<-0
-      } else {      # find truth annotations with more than one prediction overlapping it
+      } else {
+        
+        # test 1 find truth annotations that have one prediction overlapping it
+        
         n_occur<-data.frame(table(t.dat$ID.1))
         n_occur<-n_occur[n_occur$Freq>1,]
         names(n_occur)<-c("ID.1", "MULTI_TRUTH")
@@ -236,8 +208,7 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
         t.dat$REGULAR<-ifelse(t.dat$REGULAR>0, 0,1)
         
         # use REGULAR to assess simple FP rate of one prediction to one truth overlaps
-        fn<-paste("intersections_f",i,"group",j, ".csv", sep="")
-        #write.csv(t.dat, fn)
+
         fp_scenario<-numeric()
         tt.dat<-t.dat[t.dat$REGULAR==1,] # regular overlap indicates one:one truth and prediction annotations
         # check if any data exist
@@ -253,7 +224,9 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
           fpid<-tt.dat$ID[s3>1]
           FP_IDS<-c(FP_IDS, fpid)
         }
-        # now add FP for scenario 2 - where n predictions overlaps 1 annotations.  
+        
+        # test 2 -- where n predictions overlaps 1 annotation 
+        
         # assume only annotation that overlaps the most is worth counting, then assess it's overlap as above
         tt.dat<-t.dat[t.dat$REGULAR==0,]
         tt.dat<-tt.dat[tt.dat$MULTI_TRUTH>1,]
@@ -295,7 +268,9 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
           # add up the false positives counted here
           fp_scenario[2]<-fpk+fpcount
         }
-        # now the final test where  1 prediction overlap n annotations      
+        
+        # test 3 --test where 1 prediction overlaps n annotations 
+        #      
         tt.dat<-t.dat[t.dat$REGULAR==0,]
         tt.dat<-tt.dat[tt.dat$MULTI_PRED>1,]
         # check if any data exist
