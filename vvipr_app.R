@@ -62,7 +62,7 @@ ui<-fluidPage(
       h1("RESULTS"),
       p("Input parameters"),
       tableOutput("result1"),
-      p("Counts of false positive (FP), false negatives (FN), and true positives (TP), total annotations (ANNO), and total predictions (PREDS)"),
+      p("Counts of false positives (FP), false negatives (FN), and true positives (TP), total annotations (ANNO), and total predictions (PREDS)"),
       tableOutput("result2"),
       p("Performance scores for accuracy, precision, recall and F1"),
       tableOutput("result3"),
