@@ -59,12 +59,12 @@ ui<-fluidPage(
     ),
 
     mainPanel(
-      h1("RESULTS"),
-      p("Input parameters"),
+      #h1("RESULTS"),
+      #p("Input parameters"),
       tableOutput("result1"),
-      p("Counts of false positives (FP), false negatives (FN), true positives (TP), total annotations (ANNO), and total predictions (PREDS)"),
+      #p("Counts of false positives (FP), false negatives (FN), true positives (TP), total annotations (ANNO), and total predictions (PREDS)"),
       tableOutput("result2"),
-      p("Performance scores for accuracy, precision, recall and F1"),
+      #p("Performance scores for accuracy, precision, recall and F1"),
       tableOutput("result3"),
       plotOutput("plots", height="800px")
     )
@@ -155,15 +155,15 @@ server<-function(input, output, session){
 
   output$result1<-renderTable({
     reac_func_output()[[1]][1:3]
-  })
+  }, caption="Input parameters")
 
   output$result2<-renderTable({
     reac_func_output()[[1]][4:8]
-  })
+  },caption="Counts of false positives (FP), false negatives (FN), true positives (TP), total annotations (ANNO), and total predictions (PREDS)")
 
   output$result3<-renderTable({
     reac_func_output()[[1]][9:12]
-  })
+  }, caption="Performance scores for accuracy, precision, recall and F1")
 
   sf_out_reactive<-reactive({
     req(input$image, input$class)
@@ -178,19 +178,19 @@ server<-function(input, output, session){
     sf_data
   })
   output$plots<-renderPlot({
-    validate(
-      need(input$truth, "Please select a truth annotation file."),
-      need(input$prediction, "Please select a model prediction file.")
-    )
+    #validate(
+    #  need(input$truth, "Please select a truth annotation file."),
+    #  need(input$prediction, "Please select a model prediction file.")
+    #)
 
     sf_out<-sf_out_reactive()
     MAIN<-paste("Image: ", input$image,  "  Class: ", input$class, sep="")
     t.col1<-trans_col(color="black", percent=33)
-    plot(sf_out[[1]]$geometry, border=1, col=t.col1, main=MAIN)
+    plot(sf_out[[1]][[1]]$geometry, border=1, col=t.col1, main=MAIN, xlim=sf_out[[2]][c(1,3)], ylim=sf_out[[2]][c(2,4)])
     t.col2<-trans_col(color="red", percent=60)
-    plot(sf_out[[2]]$geometry, add=TRUE, border=1, col=t.col2)
+    plot(sf_out[[1]][[2]]$geometry, add=TRUE, border=1, col=t.col2)
     t.col3<-trans_col(color="blue", percent=60)
-    plot(sf_out[[3]]$geometry, add=TRUE, border=1, col=t.col3)
+    plot(sf_out[[1]][[3]]$geometry, add=TRUE, border=1, col=t.col3)
     legend(x=input$legend_pos, pch=c(15,15,15), col=c(t.col1, t.col2, t.col3), cex=2,
            legend=c("Truth", "False positive", "True positive"), bty="n")
     box()

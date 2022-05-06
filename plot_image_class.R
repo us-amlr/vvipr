@@ -11,14 +11,20 @@ plot_image_class<-function(dat1, dat2, dat3, conf.thresh, over1, over2, image, c
   
   truth<-class[[1]]
   nclass<-length(class)
+  res<-list()
   if(length(nclass>1)){
     for(j in 2:nclass){
       fp<-class[[j]][class[[j]]$ID%in%dat2,]
       tp<-class[[j]][!(class[[j]]$ID%in%dat2),]
     }
   }
-
-  res<-list(truth, fp, tp) 
+  # find  appropriate bbox for plotting later
+  x<-rbind(truth, fp, tp)
+  plot_bb<-st_bbox(x)
+  
+  # pass out data for app
+  res[[1]]<-list(truth, fp, tp) 
+  res[[2]]<-plot_bb
   
   res
 }
