@@ -23,7 +23,7 @@ ui<-fluidPage(
       h1("vvipr", style="text-align:center"),
       h2("Verify VIAME Predictions", style="text-align:center"),
       p(style="text-align:center", "Evauluate VIAME predictions against truth annotations"),
-      p(style="text-align:center","Last updated: 6 May 2022"),
+      p(style="text-align:center","Last updated: 22 May 2022"),
 
       fluidRow(
         column(6, fileInput(inputId="truth", label="1. Choose truth annotations",
@@ -59,13 +59,14 @@ ui<-fluidPage(
     ),
 
     mainPanel(
-      #h1("RESULTS"),
+      #h2("Model performance metrics"),
       #p("Input parameters"),
       tableOutput("result1"),
       #p("Counts of false positives (FP), false negatives (FN), true positives (TP), total annotations (ANNO), and total predictions (PREDS)"),
       tableOutput("result2"),
       #p("Performance scores for accuracy, precision, recall and F1"),
       tableOutput("result3"),
+      #h2("Plot for selected image and class"),
       plotOutput("plots", height="800px")
     )
   )
@@ -155,15 +156,15 @@ server<-function(input, output, session){
 
   output$result1<-renderTable({
     reac_func_output()[[1]][1:3]
-  }, caption="Input parameters")
+  }, striped=TRUE, caption="Input parameters")
 
   output$result2<-renderTable({
     reac_func_output()[[1]][4:8]
-  },caption="Counts of false positives (FP), false negatives (FN), true positives (TP), total annotations (ANNO), and total predictions (PREDS)")
+  }, striped=TRUE, caption="Counts of false positives (FP), false negatives (FN), true positives (TP), total annotations (ANNO), and total predictions (PREDS)")
 
   output$result3<-renderTable({
     reac_func_output()[[1]][9:12]
-  }, caption="Performance scores for accuracy, precision, recall and F1")
+  }, striped=TRUE, caption="Performance scores for accuracy, precision, recall and F1")
 
   sf_out_reactive<-reactive({
     req(input$image, input$class)
