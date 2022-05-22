@@ -169,7 +169,7 @@ server<-function(input, output, session){
     req(input$image, input$class)
     plot.list<-reac_func_output()
 
-    # TODO: flesh out code/function to plot overlap of selected class from selected image
+  
     sf_data<-plot_image_class(
       dat1=plot.list[[2]], dat2=plot.list[[3]], dat3=plot.list[[4]],
       conf.thresh=input$conf.thresh, over1=input$over1, over2=input$over2,
@@ -178,20 +178,21 @@ server<-function(input, output, session){
     sf_data
   })
   output$plots<-renderPlot({
-    #validate(
-    #  need(input$truth, "Please select a truth annotation file."),
-    #  need(input$prediction, "Please select a model prediction file.")
-    #)
+
 
     sf_out<-sf_out_reactive()
+    validate(
+      need(class(sf_out)=="list", "Given input values, the target class is either not annotatated or not predicted for this image. No comparison is possible."),
+    )
+    
     MAIN<-paste("Image: ", input$image,  "  Class: ", input$class, sep="")
-    t.col1<-trans_col(color="black", percent=33)
+    t.col1<-trans_col(color="black", percent=25)
     plot(sf_out[[1]][[1]]$geometry, border=1, col=t.col1, main=MAIN, xlim=sf_out[[2]][c(1,3)], ylim=sf_out[[2]][c(2,4)])
-    t.col2<-trans_col(color="red", percent=60)
+    t.col2<-trans_col(color="red", percent=33)
     plot(sf_out[[1]][[2]]$geometry, add=TRUE, border=1, col=t.col2)
-    t.col3<-trans_col(color="blue", percent=60)
+    t.col3<-trans_col(color="yellow", percent=50)
     plot(sf_out[[1]][[3]]$geometry, add=TRUE, border=1, col=t.col3)
-    legend(x=input$legend_pos, pch=c(15,15,15), col=c(t.col1, t.col2, t.col3), cex=2,
+    legend(x=input$legend_pos, border="black", fill=c(t.col1, t.col2, t.col3), cex=2,
            legend=c("Truth", "False positive", "True positive"), bty="n")
     box()
     #

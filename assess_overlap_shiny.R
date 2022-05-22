@@ -2,21 +2,10 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
                                conf.thresh=0, over1=0.5, over2=0.5, PLOT=FALSE){
   library(sf)
   library(sfheaders)
-  # read in a csv that combines the truth and prediction coordinates with unique detection IDs for each
-  #truth<-read.csv(f1, skip=2, header=FALSE)
-  #prediction<-read.csv(f2, skip=2, header=FALSE)
-  #names(truth)<-c("DETECTION_ID","PIC_NAME", "IMAGE", "TLX", "TLY", "BRX", "BRY","CONF", "TARGET", "CLASS", "CONF_2")
-  #names(prediction)<-c("DETECTION_ID","PIC_NAME", "IMAGE", "TLX", "TLY", "BRX", "BRY","CONF", "TARGET", "CLASS", "CONF_2")
   
   t.classes<-unique(truth$CLASS)
   n.classes<-length(t.classes)
   p.classes<-unique(prediction$CLASS)
-  #
-
-  # ensure classes for truth and predictions are identical
-  #if(!identical(t.classes, p.classes)){
-  #  warning("Truth and Annotation class names do not match. This code requires matching names for comparing.")
-  #}
   
   # create numeric code to allow matching of classes
   index<-data.frame(CLASS=t.classes, INDEX=1:n.classes)
@@ -31,48 +20,48 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
   # we'll conduct this analysis of overlap for each image separately
   n.images<-length(unique(annos$PIC_NAME))
   images<-unique(annos$PIC_NAME)
-  #
+  
   # cull predictions that are below a confidence threshold
-  #
+  
   annos<-annos[annos$CONF>conf.thresh,]
 
   
-  # analyze overlap
+  # create output placeholders
   
   out_image<-list() 
   fp<-list()
-  FP_IDS<-numeric()
+  FP_IDS<-numeric() # keep track of false positive IDs
+  TP_IDS<-numeric() # keep track of true positive IDs
   out_classes<-list()
+  
+  # analyze overlap in each image and class
   
   for(i in 1:n.images){
     tt.test<-annos[annos$PIC_NAME==images[i],]
-    # now run analyses for each class of object detected
+    
+    # create output for iteration on target class within each image
+    
     class_out<-list()
     tp_classes<-list()
     false_positives<-numeric()
+    
+    # interate for each class within each image
+    
     for(k in 1:n.classes){
       test<-tt.test[tt.test$INDEX==k,]
-      # 
       # if a particular class is not present in the image, skip and report NA for result
       if(dim(test)[1]==0){
-        #print("here - fail 1")
-        # if the class is utterly absent
         class_out[[k]]<-NA
         false_positives[k]<-0
-
       } else {
         k_classes<-length(unique(test$CLASS))
         if(k_classes!=2){
-          #print("here - fail 2")
           # filtering likely caused a predicted class to no longer be present. Thus, no predictions available to assess
-          # again, set 
           class_out[[k]]<-NA
           false_positives[k]<-0
-          
         } else {
-          #print("here - normal")
           # build polygons from coordinates indicating bottom left x and y and top right x and y
-          #first thing is to make a long-format data frame with 5 polygon vertices for X and Y built from teh corners of the bounding box
+          #first thing is to make a long-format data frame with 5 polygon vertices for X and Y built from the corners of the bounding box
           # X pattern is TLX BRX BRX TLX TLX
           # Y pattern is TLY  TLY BRY BRY TLY
           n.polys<-length(test[,1])
@@ -100,12 +89,13 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
           #pass out the truth and prediction lists for class k in image i
           tp_classes[[k]]<-classes
           names(tp_classes)[[k]]<-t.classes[k]
+          
           # now assess overlap of the classes
-          # need to know which classes should overlap (i.e., penguin annotation with penguin prediction, but not with seal prediction!)
+
           # use st_intersects(obj1, obj2, sparse=FALSE) for basic analysis of clearly unique polygons
           x<-st_intersects(classes[[2]], classes[[1]], sparse=FALSE)
           xx<-apply(x, 1, any)
-          # identify each polygon in the prediction class that is a clear FP as such
+          # identify each polygon in the prediction class that is a clear FP
           # what polygon ID are we working with
           indx<-rep(NA, length(classes[[2]][,1]))
           indx<-ifelse(xx, NA, "FP")
@@ -116,14 +106,15 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
           # for later merging, also add the TYPE index to classes[[1]]
           classes[[1]]$TYPE<-NA
           # length will give the number of false positives, assuming predictions are the first geometry and truth is in the second
-          # this only account for the polygons that exhibit no overlap. 
+          # this only accounts for the polygons that exhibit no overlap. 
           false_positives[k]<-length(xx[xx==FALSE])
-          #
-          # but the issue isn't overlap, it's the quality of overlap. need to know if it overlaps by a decent margin. 
+          
+          # but the issue isn't only the absence of overlap, it's the quality of overlap if it exists. we want to know if it overlaps by a decent margin. 
           #
           # the following creates polygons of the overlapping areas
-          # to assess false negatives, place the "predictions" in the first location and "truth" annotations in the second location
           #
+          # to assess false negatives, place the "predictions" in the first location and "truth" annotations in the second location
+      
           tt.int<-st_intersection(classes[[2]], classes[[1]])
           # compute area for each overlapping polygon identified above
           tt.area<-st_area(tt.int)
@@ -141,21 +132,19 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
           #
           tt.int<-merge(tt.int, tt.c2.merge, by="ID", sort=FALSE)
           tt.int<-merge(tt.int, tt.c1.merge, by="ID.1", sort=FALSE)
-          #
-          # Save out the data frame for later analysis
-          # delete any "overlaps" with an overlap area of zero - these are "lines" and not useful for assessing
-          #tt.int<-tt.int[tt.int$OVERLAP_AREA>0,]
+          
           # assess percent of overlap that the prediction and annotation have
           # we expect a good prediction to mostly overlap the annotated area. if the overlap is poor - reject as true prediction and become False negative
+          
           tt.int$PROP_OVERLAP<-tt.int$OVERLAP_AREA/tt.int$ANNO_AREA
-          # also assess how much of prediction is in the overlap aera. 
+          
+          # also assess how much of prediction is in the overlap area. 
           # if a high proportion, it means the prediction is mainly centered over the annotation, but smaller
-          # so, an assessment of whether to retain a prediction requires either high overlap with the annotaiton,
+          # so, an assessment of whether to retain a prediction requires either high overlap with the annotation,
           # or for the prediction to be mostly represented in the overlap area
+          
           tt.int$PROP_PRED_OVERLAP<-tt.int$OVERLAP_AREA/tt.int$PRED_AREA
           tt.int<-tt.int[order(tt.int$ID),]
-          #fn<-paste("intersections_f",i,"group",k, ".csv", sep="")
-          #write.csv(tt.int, fn)
           class_out[[k]]<-tt.int
           # 
           # the output is a data frame that identifies the polygon ids from the truth and prediction that overlap
@@ -173,8 +162,10 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
   fp<-do.call("rbind", fp)
   fp<-data.frame(fp)
   names(fp)<-t.classes
+  
   # now analyze the outputs of the overlap to add false positives based on poor overlaps
   # will apply a function for each image and class
+  
   new_fp<-list()
   for(i in 1:n.images){
     dat<-out_image[[i]]
@@ -221,21 +212,23 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
           s2<-ifelse(tt.dat$PROP_PRED_OVERLAP<over2, 1,0)
           s3<-s1+s2
           fp_scenario[1]<-length(s3[s3>1])
-          fpid<-tt.dat$ID[s3>1]
+          fpid<-tt.dat$ID[s3>1] # false positives fail both threshold criteria
+          tpid<-tt.dat$ID[s3<=1] # true positives meet at least one of the criteria
           FP_IDS<-c(FP_IDS, fpid)
+          TP_IDS<-c(TP_IDS, tpid)
         }
         
-        # test 2 -- where n predictions overlaps 1 annotation 
+        # test 2 -- where n predictions overlap 1 annotation 
         
         # assume only annotation that overlaps the most is worth counting, then assess it's overlap as above
         tt.dat<-t.dat[t.dat$REGULAR==0,]
         tt.dat<-tt.dat[tt.dat$MULTI_TRUTH>1,]
+        
         # check if any data exist
         if(dim(tt.dat)[1]==0){
           # assign no fp for scenario 1 if no data exist
           fp_scenario[2]<-0
         } else {
-          tt.dat<-tt.dat[order(tt.dat$ID.1),]
           # now assess which of the overlaps to keep for assessment as FP and which to discard are incidental overlap
           n.overlaps<-length(unique(tt.dat$ID.1))
           overlaps<-unique(tt.dat$ID.1)
@@ -264,13 +257,15 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
             fpk<-fpk+length(s3[s3>1])
             fpid<-ttt.dat$ID[s3>1]
             FP_IDS<-c(FP_IDS, fpid)
+            tpid<-ttt.dat$ID[s3<=1] # true positives meet at least one of the criteria
+            TP_IDS<-c(TP_IDS, tpid)
           }
           # add up the false positives counted here
           fp_scenario[2]<-fpk+fpcount
         }
         
         # test 3 --test where 1 prediction overlaps n annotations 
-        #      
+     
         tt.dat<-t.dat[t.dat$REGULAR==0,]
         tt.dat<-tt.dat[tt.dat$MULTI_PRED>1,]
         # check if any data exist
@@ -278,7 +273,7 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
           # assign no fp for scenario 1 if no data exist
           fp_scenario[2]<-0
         } else {
-          tt.dat<-tt.dat[order(tt.dat$ID),]
+          #tt.dat<-tt.dat[order(tt.dat$ID),]
           # now assess which of the overlaps to keep for assessment as FP and which to discard are incidental overlap
           n.overlaps<-length(unique(tt.dat$ID))
           overlaps<-unique(tt.dat$ID)
@@ -299,11 +294,21 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
             fpk<-fpk+length(s3[s3>1])
             fpid<-ttt.dat$ID[s3>1]
             FP_IDS<-c(FP_IDS, fpid)
+            tpid<-ttt.dat$ID[s3<=1] # true positives meet at least one of the criteria
+            TP_IDS<-c(TP_IDS, tpid)
           }
           fp_scenario[3]<-fpk
         }
       }
-      fps[j]<-sum(fp_scenario)
+      # correct FP/TP double counting before leaving the class here
+      # because code might prematurely assign FP status, the list of FP IDs and TP IDs needs to be checked and corrected for each class
+      x<-FP_IDS%in%TP_IDS
+      n.fps<-length(FP_IDS)
+      FP_IDS<-FP_IDS[!x] # only keep the valid false positives
+      nn.fps<-length(FP_IDS)
+      lose.n<-n.fps-nn.fps
+      fps[j]<-sum(fp_scenario)-lose.n
+      # end of iteration for each class within each photo
     }
     new_fp[[i]]<-fps
   }
