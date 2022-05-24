@@ -1,0 +1,16 @@
+Package: vvipr
+Type: Package
+Title: Verify VIAME Predictions
+Version: 0.1.0
+Author: Jefferson Hinke
+Maintainer: Jefferson Hinke <Jefferson.Hinke@noaa.gov>
+Description: This is the description of the package.
+License: MIT + file LICENSE
+Imports: shiny,sf,sfheaders
+Encoding: UTF-8
+LazyData: true
+URL: https://github.com/jthinke/vvipr
+BugReports: https://github.com/jthinke/vvipr/issues
+RoxygenNote: 7.1.2
+Depends: 
+    R (>= 4.2)

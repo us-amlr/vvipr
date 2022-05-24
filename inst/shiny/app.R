@@ -1,7 +1,7 @@
 library(shiny)
 library(sf)
 library(sfheaders)
-
+library(vvipr)
 
 csv.accept <- c(
   "text/csv",
@@ -74,12 +74,6 @@ ui<-fluidPage(
 
 
 server<-function(input, output, session){
-  source('assess_overlap_shiny.R')
-  source('plot_image_class.R')
-  source('is_sf.R')
-  source('fill_matrix.R')
-  source('vals.R')
-  source('trans_col.R')
 
   #-----------------------------------------------------------------------------
   # Render UIs
@@ -187,11 +181,11 @@ server<-function(input, output, session){
     )
     
     MAIN<-paste("Image: ", input$image,  "  Class: ", input$class, sep="")
-    t.col1<-trans_col(color="black", percent=25)
+    t.col1<-adjustcolor(col="black", alpha.f=0.75)
     plot(sf_out[[1]][[1]]$geometry, border=1, col=t.col1, main=MAIN, xlim=sf_out[[2]][c(1,3)], ylim=sf_out[[2]][c(2,4)])
-    t.col2<-trans_col(color="red", percent=33)
+    t.col2<-adjustcolor(col="red", alpha.f=0.66)
     plot(sf_out[[1]][[2]]$geometry, add=TRUE, border=1, col=t.col2)
-    t.col3<-trans_col(color="yellow", percent=50)
+    t.col3<-adjustcolor(col="yellow", alpha.f=0.5)
     plot(sf_out[[1]][[3]]$geometry, add=TRUE, border=1, col=t.col3)
     legend(x=input$legend_pos, border="black", fill=c(t.col1, t.col2, t.col3), cex=2,
            legend=c("Truth", "False positive", "True positive"), bty="n")

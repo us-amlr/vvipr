@@ -1,13 +1,33 @@
-assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_detections.csv", 
-                               conf.thresh=0, over1=0.5, over2=0.5, PLOT=FALSE){
-  library(sf)
-  library(sfheaders)
-  
+#' assess_overlap_shiny
+#' 
+#' The workhorse function in the vvipr app. Users should not need to call this directly. The function is based on sf geometries for assessing the performance of image classification models implemented with VIAME software (https://www.viametoolkit.org/)
+#'
+#' The function requires input of two files, as output by VIAME, and the setting of 3 thresholds for assigning a model prediction as a false positve. 
+#' The images used for the truth and prediction files should be the exact same. 
+
+#' @param truth A data frame created in the vvipr app that is based on the user-selected .csv data file representing the truth annotations as output by VIAME software for the set of images under analysis
+#' @param prediction A data frame created in the vvipr app that is based on the user-selected .csv data file representing the model predictions as output by VIAME software for the set of images under analysis
+#' @param conf.thresh A numeric value from 0 to 0.99 that specifies the minimum value for including model predictions in the analysis. Predictions with confidence
+#' levels below the threshold will be eliminated from the analysis. 
+#' @param over1 A numeric value from 0 to 1 that specifies the minimum proportion of a truth annotation that must be covered by a model prediction. Predictions 
+#' that do not meet this threshold will be assigned a status of 'false positive'  
+#' @param over2 A numeric value from 0 to 1 that specifies the minimum proportion of a prediction area that must overlap with a truth annotation. Predictions that
+#'  do not meet this threshold will be assigned a status of 'false positive'. Note that predictions that fail to meet the 'over1' threshold, but do meet the 'over2
+#'  threshold will be assigned a 'true positive' status
+#'
+#' @return The function returns a list containing a data frame of model results, a list of class sf with geometries for each image and class, a vector of 
+#' polygon IDs for all false positives that were detected, and a data frame with CLASS and INDEX headers identifying classes in the data.  
+#'
+#' @examples 
+#' assess_overlap_shiny(truth=truth_ex, prediction=prediction_ex, 
+#' conf.thresh=0.2, over1=0.5, over2=0.5)
+#' @export
+assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, over2=0.5){
+
   t.classes<-unique(truth$CLASS)
   n.classes<-length(t.classes)
   p.classes<-unique(prediction$CLASS)
-  
-  # create numeric code to allow matching of classes
+    # create numeric code to allow matching of classes
   index<-data.frame(CLASS=t.classes, INDEX=1:n.classes)
   # change CLASS to clearly differentiate truth and prediction classes
   truth<-merge(truth, index, by="CLASS")
@@ -25,7 +45,6 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
   
   annos<-annos[annos$CONF>conf.thresh,]
 
-  
   # create output placeholders
   
   out_image<-list() 
@@ -78,6 +97,7 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
           class<-do.call("rbind", class)
           # use sfheaders::sf_polygon to create the polygons for overlaying later
           x<-sfheaders::sf_polygon(obj=DTlong, x="X", y="Y", polygon_id ="ID")
+          
           x$CLASS<-class
           # separate the different classes here
           nclass<-length(unique(x$CLASS))
@@ -336,16 +356,16 @@ assess_overlap_shiny<-function(truth="penguin_truth.csv", prediction="penguin_de
     # all cool here
     total$preds<-as.vector(tapply(p1$BRX, p1$IMAGE, length))
   }
-  # at this point, you could calculate performace on each image. 
-  # but in reality, probalby just need performance of model generally
+  # at this point, you could calculate performance on each image. 
+  # but in reality, probably just need performance of model generally
   # so sum columns for total fp, anno, and preds to solve for fn and tp and then calculate model scores
   FP<-sum(total$fp)
   ANNO<-sum(total$anno)
   PREDS<-sum(total$preds)
-  # now solve uniroot function
-  fun<-uniroot(fill_matrix, interval=c(0,1000), fp=FP, anno=ANNO, preds=PREDS)
-  fvals<-vals(x=fun$root, FP, ANNO)
-  # calcualte the model performance metrics based on fp, fn, and tp counts
+  # now solve uniroot function using the optimize_me() function
+  fun<-uniroot(optimize_me, interval=c(0,1e5), fp=FP, anno=ANNO, preds=PREDS)
+  fvals<-optimize_vals(x=fun$root, FP, ANNO)
+  # calculate the model performance metrics based on fp, fn, and tp counts
   fp<-fvals[1]
   fn<-fvals[2]
   tp<-fvals[3]
