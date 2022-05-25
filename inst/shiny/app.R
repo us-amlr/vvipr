@@ -33,18 +33,20 @@ ui<-fluidPage(
       ),
 
       hr(),
-
+      
       numericInput(inputId = "conf.thresh",
                    label = "3. Enter confidence threshold level between 0 and 0.99",
                    value=0, min=0, max=0.99, step=0.01),
-
-      numericInput(inputId="over1",
-                   label="4. Enter minimum proportion of truth area needed for overlap (Truth overlap)",
-                   value=0.5, min=0, max=0.99, step=0.01),
-
-      numericInput(inputId="over2",
-                   label="5. Enter minimum proportion of predicted area needed for overlap (Prediction overlap)",
-                   value=0.5, min=0, max=0.99, step=0.01),
+      
+      fluidRow(
+      column(6, numericInput(inputId="over1",
+                             label="4. Enter minimum proportion of truth area needed for overlap (Truth overlap)",
+                             value=0.5, min=0, max=0.99, step=0.01)),
+      
+      column(6, numericInput(inputId="over2",
+                             label="5. Enter minimum proportion of predicted area needed for overlap (Prediction overlap)",
+                             value=0.5, min=0, max=0.99, step=0.01))
+    ),
 
       hr(),
 
