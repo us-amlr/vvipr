@@ -34,19 +34,20 @@ The second overlap parameter (Step 5) is essentially the reverse - how much of t
 
 Here are some simple instruction for running the vvipr app from RStudio (points 1-7) or online [here](https://jefferson.shinyapps.io/vvipr/) (points 4-7).
 
-1) install the 'shiny', 'sf', 'sfheaders'  and 'devtools' packages from a CRAN repository, if needed, and attach them. 
+1) Install the 'shiny', 'sf', 'sfheaders'  and 'devtools' packages from a CRAN repository, if needed, and attach them. 
  ```r
-install.packages(c("shiny", "lubridate", 'devtools')
+install.packages(c("shiny", "sf", "sfheaders", 'devtools')
 library(shiny)
-library(lubridate)
+library(sf)
+libary(sfheaders)
 library(devtools)
 ```
-2) install vvipr from Github and attach
+2) Install vvipr from Github and attach
 ```r
 install_github("jthinke/vvipr")
 library(vvipr)
 ```
-3) run the app with 
+3) Run the app with 
 ```r
 vvipr()
 ```
