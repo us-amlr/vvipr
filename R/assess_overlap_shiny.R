@@ -23,11 +23,11 @@
 #' conf.thresh=0.2, over1=0.5, over2=0.5)
 #' @export
 assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, over2=0.5){
-
+  
   t.classes<-unique(truth$CLASS)
   n.classes<-length(t.classes)
   p.classes<-unique(prediction$CLASS)
-    # create numeric code to allow matching of classes
+  # create numeric code to allow matching of classes
   index<-data.frame(CLASS=t.classes, INDEX=1:n.classes)
   # change CLASS to clearly differentiate truth and prediction classes
   truth<-merge(truth, index, by="CLASS")
@@ -44,7 +44,7 @@ assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, ov
   # cull predictions that are below a confidence threshold
   
   annos<-annos[annos$CONF>conf.thresh,]
-
+  
   # create output placeholders
   
   out_image<-list() 
@@ -96,7 +96,15 @@ assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, ov
           DTlong<-do.call("rbind", out)
           class<-do.call("rbind", class)
           # use sfheaders::sf_polygon to create the polygons for overlaying later
-          x<-sfheaders::sf_polygon(obj=DTlong, x="X", y="Y", polygon_id ="ID")
+          # x<-sfheaders::sf_polygon(obj=DTlong, x="X", y="Y", polygon_id ="ID")
+          x <- DTlong %>% 
+            st_as_sf(coords = c("X", "Y")) %>% 
+            group_by(.data$ID) %>% 
+            summarise() %>% 
+            st_convex_hull() %>% 
+            st_sf()
+          # waldo::compare(x %>% arrange(ID) %>% st_area, st_area(y))
+          # waldo::compare(x %>% arrange(ID) %>% st_bbox(), st_bbox(y))
           
           x$CLASS<-class
           # separate the different classes here
@@ -111,7 +119,7 @@ assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, ov
           names(tp_classes)[[k]]<-t.classes[k]
           
           # now assess overlap of the classes
-
+          
           # use st_intersects(obj1, obj2, sparse=FALSE) for basic analysis of clearly unique polygons
           x<-st_intersects(classes[[2]], classes[[1]], sparse=FALSE)
           xx<-apply(x, 1, any)
@@ -134,7 +142,7 @@ assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, ov
           # the following creates polygons of the overlapping areas
           #
           # to assess false negatives, place the "predictions" in the first location and "truth" annotations in the second location
-      
+          
           tt.int<-st_intersection(classes[[2]], classes[[1]])
           # compute area for each overlapping polygon identified above
           tt.area<-st_area(tt.int)
@@ -219,7 +227,7 @@ assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, ov
         t.dat$REGULAR<-ifelse(t.dat$REGULAR>0, 0,1)
         
         # use REGULAR to assess simple FP rate of one prediction to one truth overlaps
-
+        
         fp_scenario<-numeric()
         tt.dat<-t.dat[t.dat$REGULAR==1,] # regular overlap indicates one:one truth and prediction annotations
         # check if any data exist
@@ -285,7 +293,7 @@ assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, ov
         }
         
         # test 3 --test where 1 prediction overlaps n annotations 
-     
+        
         tt.dat<-t.dat[t.dat$REGULAR==0,]
         tt.dat<-tt.dat[tt.dat$MULTI_PRED>1,]
         # check if any data exist

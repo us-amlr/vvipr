@@ -9,8 +9,9 @@
 #' @author Jefferson Hinke \email{jefferson.hinke@noaa.gov}
 #' @seealso \url{https://github.com/jthinke/vvipr}
 #'
-#' @importFrom sf st_bbox st_intersects st_intersection st_area
-#' @importFrom sfheaders sf_polygon
+#' @importFrom dplyr %>% .data group_by summarise
+#' @importFrom sf st_bbox st_intersects st_intersection st_area st_as_sf 
+#'   st_convex_hull st_sf
 #' @importFrom grDevices col2rgb rgb adjustcolor
 #' @importFrom stats uniroot
 #' @keywords package
