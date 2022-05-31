@@ -1,16 +1,18 @@
 Package: vvipr
-Type: Package
 Title: Verify VIAME Predictions
-Version: 0.1.0
-Author: Jefferson Hinke
-Maintainer: Jefferson Hinke <Jefferson.Hinke@noaa.gov>
+Version: 0.2.0.9000
+Authors@R: 
+    c(person("Jefferson", "Hinke", email = "jefferson.hinke@noaa.gov", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-3600-1414")),
+      person("Sam", "Woodman", email = "sam.woodman@noaa.gov", role = c("aut"), comment = c(ORCID = "0000-0001-6071-8186")))
 Description: This is the description of the package.
-License: MIT + file LICENSE
-Imports: shiny,sf,sfheaders
+License: CC0
+Depends: R (>= 4.2)
+Imports: 
+    dplyr, 
+    shiny, 
+    sf
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/jthinke/vvipr
 BugReports: https://github.com/jthinke/vvipr/issues
-RoxygenNote: 7.1.2
-Depends: 
-    R (>= 4.2)
+RoxygenNote: 7.2.0
