@@ -34,31 +34,25 @@ The second overlap parameter (Step 5) is essentially the reverse - how much of t
 
 Here are some simple instruction for running the vvipr app from RStudio (points 1-7) or online [here](https://jefferson.shinyapps.io/vvipr/) (points 4-7).
 
-1) Install the 'shiny', 'sf', 'sfheaders'  and 'devtools' packages from a CRAN repository, if needed, and attach them. 
+Install the 'shiny', 'sf', 'sfheaders'  and 'devtools' packages from a CRAN repository, if needed, and attach them. 
  ```r
-install.packages(c("shiny", "sf", "sfheaders", 'devtools')
-library(shiny)
-library(sf)
-libary(sfheaders)
-library(devtools)
+install.packages("devtools")
+devtools::install_github("jthinke/vvipr")
 ```
-2) Install vvipr from Github and attach
-```r
-install_github("jthinke/vvipr")
-library(vvipr)
-```
-3) Run the app with 
+## Usage
+
+1)  Run the app with 
 ```r
 vvipr()
 ```
 
-4) There will be 2 data files to load. The first is the annotations representing the truth data (an example: [truth.csv](https://github.com/jthinke/vvipr/blob/main/inst/extdata/peng4_truth.csv)) and the second is the file containg the model predictions from the trained model (an example: [predictions.csv](https://github.com/jthinke/vvipr/blob/main/inst/extdata/peng4_detections.csv)). To load your own, navigate to where the data are housed and allow upload. 
+2) There will be 2 data files to load. The first is the annotations representing the truth data (an example: [truth.csv](https://github.com/jthinke/vvipr/blob/main/inst/extdata/peng4_truth.csv)) and the second is the file containg the model predictions from the trained model (an example: [predictions.csv](https://github.com/jthinke/vvipr/blob/main/inst/extdata/peng4_detections.csv)). To load your own, navigate to where the data are housed and allow upload. 
 
-5) Specify desired values for confidence thresholds and overlap proportions.
+3) Specify desired values for confidence thresholds and overlap proportions.
 
-6) Optionally change the image and class of detection (based on what's in the truth annotation files) 
+4) Optionally change the image and class of detection (based on what's in the truth annotation files) 
 
-7) Use the download button to download results.
+5) Use the download button to download results.
 
 ## Disclaimer
 
