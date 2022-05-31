@@ -2,9 +2,10 @@ Package: vvipr
 Title: Verify VIAME Predictions
 Version: 0.2.0.9000
 Authors@R: 
-    person("Jefferson", "Hinke", email = "jefferson/hinke@noaa.gov", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-3600-1414"))
+    c(person("Jefferson", "Hinke", email = "jefferson.hinke@noaa.gov", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-3600-1414")),
+      person("Sam", "Woodman", email = "sam.woodman@noaa.gov", role = c("aut"), comment = c(ORCID = "0000-0001-6071-8186")))
 Description: This is the description of the package.
-License: MIT + file LICENSE
+License: CC0
 Depends: R (>= 4.2)
 Imports: 
     dplyr, 
