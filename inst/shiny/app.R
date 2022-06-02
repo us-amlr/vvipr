@@ -1,6 +1,5 @@
 library(shiny)
 library(sf)
-library(sfheaders)
 library(vvipr)
 
 csv.accept <- c(
