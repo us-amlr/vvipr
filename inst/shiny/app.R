@@ -23,7 +23,7 @@ ui<-fluidPage(
       h1("vvipr", style="text-align:center"),
       h2("Verify VIAME Predictions", style="text-align:center"),
       p(style="text-align:center", "Evauluate VIAME predictions against truth annotations"),
-      p(style="text-align:center","Last updated: 22 May 2022"),
+      p(style="text-align:center","Last updated: 2 June 2022"),
       
       fluidRow(
         column(6, fileInput(inputId="truth", label="1. Choose truth annotations",
