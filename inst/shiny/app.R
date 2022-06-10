@@ -22,7 +22,7 @@ ui<-fluidPage(
       h1("vvipr", style="text-align:center"),
       h2("Verify VIAME Predictions", style="text-align:center"),
       p(style="text-align:center", "Evauluate VIAME predictions against truth annotations"),
-      p(style="text-align:center","Last updated: 2 June 2022"),
+      p(style="text-align:center","Last updated: 10 June 2022"),
       
       fluidRow(
         column(6, fileInput(inputId="truth", label="1. Choose truth annotations",
@@ -44,7 +44,10 @@ ui<-fluidPage(
         
         column(6, numericInput(inputId="over2",
                                label="5. Enter minimum proportion of predicted area needed for overlap (Prediction overlap)",
-                               value=0.5, min=0, max=0.99, step=0.01))
+                               value=0.5, min=0, max=0.99, step=0.01)),
+        
+        actionButton("goButton","Update"),
+        p("Click the button to update results")
       ),
       
       hr(),
@@ -150,7 +153,7 @@ server<-function(input, output, session){
   
   #-----------------------------------------------------------------------------
   # Run input data through vvipr functions, and create plots and tables
-  reac_func_output<-reactive({
+  reac_func_output<-eventReactive(input$goButton, {
     assess_overlap_shiny(
       truth=data_truth(), prediction=data_prediction(),
       conf.thresh=input$conf.thresh, over1=input$over1, over2=input$over2
