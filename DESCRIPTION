@@ -1,6 +1,6 @@
 Package: vvipr
 Title: Verify VIAME Predictions
-Version: 0.3.0
+Version: 0.3.1
 Authors@R: 
     c(person("Jefferson", "Hinke", email = "jefferson.hinke@noaa.gov", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-3600-1414")),
       person("Sam", "Woodman", email = "sam.woodman@noaa.gov", role = c("aut"), comment = c(ORCID = "0000-0001-6071-8186")))
