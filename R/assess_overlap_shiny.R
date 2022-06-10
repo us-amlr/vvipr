@@ -36,10 +36,11 @@ assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, ov
   prediction$CLASS<-paste("prediction_", prediction$CLASS, sep="")
   #
   annos<-rbind(truth, prediction)
+  annos<-annos[order(annos$IMAGE),]
   #write.csv(annos, "annos.csv")
   # we'll conduct this analysis of overlap for each image separately
-  n.images<-length(unique(annos$PIC_NAME))
-  images<-unique(annos$PIC_NAME)
+  n.images<-length(unique(annos$IMAGE))
+  images<-unique(annos$IMAGE)
   
   # cull predictions that are below a confidence threshold
   
@@ -56,7 +57,7 @@ assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, ov
   # analyze overlap in each image and class
   
   for(i in 1:n.images){
-    tt.test<-annos[annos$PIC_NAME==images[i],]
+    tt.test<-annos[annos$IMAGE==images[i],]
     
     # create output for iteration on target class within each image
     
