@@ -7,6 +7,8 @@
 #' @param anno Integer. The total number of truth annotations. 
 #'
 #' @return Numeric vector containing the number of false positives, false negatives, and true positives 
+#' 
+#' @export
 optimize_vals<-function(x, fp, anno){
   fp<-fp
   fn<-x

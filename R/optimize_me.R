@@ -7,8 +7,8 @@
 #' @param preds Integer. The total number of predictions.
 #'
 #' @return Numeric. Returns value of function to be minimized when solving for x
-
-
+#' 
+#' @export
 optimize_me<-function(x, fp,anno, preds){
   tp<-anno-x
   pred<-tp+fp

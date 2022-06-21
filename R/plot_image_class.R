@@ -5,6 +5,7 @@
 #' @param dat1 List. The list of sf files that contain annotation polygons for the selected image and class
 #' @param dat2 Vector of polygon IDs for all false positive predictions.
 #' @param dat3 Data frame listing object classes ('CLASS') and arbitrary numeric code ('INDEX') 
+#' @param dat4 Vector containing image names 
 #' @param conf.thresh A numeric value from 0 to 0.99 that specifies the minimum value for including model predictions in the analysis. Predictions with confidence levels below the threshold will be eliminated from the analysis. 
 #' @param over1 A numeric value from 0 to 1 that specifies the minimum proportion of a truth annotation that must be covered by a model prediction. Predictions that do not meet this threshold will be assigned a status of 'false positive'  
 #' @param over2 A numeric value from 0 to 1 that specifies the minimum proportion of a prediction area that must overlap with a truth annotation. Predictions that do not meet this threshold will be assigned a status of 'false positive'. Note that predictions that fail to meet the 'over1' threshold, but do meet the 'over2
@@ -14,7 +15,7 @@
 #' @return List of length 2. The first component is a list containing a list of length 3 with the geometries for truth annotations, false positive, and true positive predictions. THe second component is a bounding box for proper plot X and Y limits. 
 #' @export
 #' 
-plot_image_class<-function(dat1, dat2, dat3, conf.thresh, over1, over2, image, class){
+plot_image_class<-function(dat1, dat2, dat3, dat4, conf.thresh, over1, over2, image, class){
   # pass back a list for plotting that contains 3 components
   #1 the truth annotations
   #2 the predictions that are true positives
@@ -23,7 +24,6 @@ plot_image_class<-function(dat1, dat2, dat3, conf.thresh, over1, over2, image, c
   
   
   truth<-dat1[[as.numeric(image)]]
-  
   # check if all classes present for plotting
   
   dat3$KEEP<-dat3[,1]%in%names(truth)
@@ -49,7 +49,7 @@ plot_image_class<-function(dat1, dat2, dat3, conf.thresh, over1, over2, image, c
     # pass out data for app
     res[[1]]<-list(truth, fp, tp) 
     res[[2]]<-plot_bb
-    
+    res[[3]]<-dat4[as.numeric(image)]
   } else {
     # return negative result to trigger error message
     res<-NULL

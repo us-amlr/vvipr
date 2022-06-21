@@ -1,12 +1,12 @@
-#' assess_overlap_shiny
+#' assess_overlap
 #' 
 #' The workhorse function in the vvipr app. Users should not need to call this directly. The function is based on sf geometries for assessing the performance of image classification models implemented with VIAME software (https://www.viametoolkit.org/)
 #'
 #' The function requires input of two files, as output by VIAME, and the setting of 3 thresholds for assigning a model prediction as a false positve. 
 #' The images used for the truth and prediction files should be the exact same. 
 
-#' @param truth A data frame created in the vvipr app that is based on the user-selected .csv data file representing the truth annotations as output by VIAME software for the set of images under analysis
-#' @param prediction A data frame created in the vvipr app that is based on the user-selected .csv data file representing the model predictions as output by VIAME software for the set of images under analysis
+#' @param truth A path identifying the user-selected .csv data file representing the truth annotations as output by VIAME software for the set of images under analysis
+#' @param prediction A path identifying the user-selected .csv data file representing the model predictions as output by VIAME software for the set of images under analysis
 #' @param conf.thresh A numeric value from 0 to 0.99 that specifies the minimum value for including model predictions in the analysis. Predictions with confidence
 #' levels below the threshold will be eliminated from the analysis. 
 #' @param over1 A numeric value from 0 to 1 that specifies the minimum proportion of a truth annotation that must be covered by a model prediction. Predictions 
@@ -18,30 +18,50 @@
 #' @return The function returns a list containing a data frame of model results, a list of class sf with geometries for each image and class, a vector of 
 #' polygon IDs for all false positives that were detected, and a data frame with CLASS and INDEX headers identifying classes in the data.  
 #'
-#' @examples 
-#' assess_overlap_shiny(truth=truth_ex, prediction=prediction_ex, 
-#' conf.thresh=0.2, over1=0.5, over2=0.5)
 #' @export
-assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, over2=0.5){
+assess_overlap<-function(truth, prediction, conf.thresh=0.2, over1=0.5, over2=0.5){
+
+    # helper functions
+  NAMES<-c("DETECTION_ID", "PIC_NAME", "IMAGE", "TLX", "TLY", "BRX", "BRY",
+           "CONF", "TARGET", "CLASS", "CONF_2")
+  # renumber images from 1 in consecutive order 
+  func_image_name <- function(x) {
+    z<-as.vector(table(x))
+    rep(1:length(unique(x)), z)
+  }
   
+  # import data files
+  truth <- utils::read.csv(truth, skip=2, header=FALSE)
+  names(truth)<-NAMES
+  truth<-truth[order(truth$IMAGE),]
+  truth$IMAGE <- func_image_name(truth$IMAGE)
+  
+  prediction <- utils::read.csv(prediction, skip=2, header=FALSE)
+  names(prediction)<-NAMES
+  #
+  prediction$DETECTION_ID<-seq(from=max(truth$DETECTION_ID)+1000, by=1,
+                               length.out=length(prediction$IMAGE))
+  prediction<-prediction[order(prediction$IMAGE),]
+  prediction$IMAGE <- func_image_name(prediction$IMAGE)
+
   t.classes<-unique(truth$CLASS)
   n.classes<-length(t.classes)
   p.classes<-unique(prediction$CLASS)
   # create numeric code to allow matching of classes
   index<-data.frame(CLASS=t.classes, INDEX=1:n.classes)
   # change CLASS to clearly differentiate truth and prediction classes
-  truth<-merge(truth, index, by="CLASS")
-  prediction<-merge(prediction, index, by="CLASS")
+  truth<-merge(truth, index, by="CLASS", sort=FALSE)
+  prediction<-merge(prediction, index, by="CLASS", sort=FALSE)
   truth$CLASS<-paste("truth_", truth$CLASS, sep="")
   prediction$CLASS<-paste("prediction_", prediction$CLASS, sep="")
   #
   annos<-rbind(truth, prediction)
-  #annos<-annos[order(annos$IMAGE),]
+  annos<-annos[order(annos$IMAGE),]
   #write.csv(annos, "annos.csv")
   # we'll conduct this analysis of overlap for each image separately
-  n.images<-length(unique(annos$PIC_NAME))
-  images<-unique(annos$PIC_NAME)
-  
+  n.images<-length(unique(annos$IMAGE))
+  images<-unique(annos$IMAGE)
+  pic_names<-unique(annos$PIC_NAME)
   # cull predictions that are below a confidence threshold
   
   annos<-annos[annos$CONF>conf.thresh,]
@@ -57,7 +77,7 @@ assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, ov
   # analyze overlap in each image and class
   
   for(i in 1:n.images){
-    tt.test<-annos[annos$PIC_NAME==images[i],]
+    tt.test<-annos[annos$IMAGE==images[i],]
     
     # create output for iteration on target class within each image
     
@@ -65,7 +85,7 @@ assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, ov
     tp_classes<-list()
     false_positives<-numeric()
     
-    # interate for each class within each image
+    # iterate for each class within each image
     
     for(k in 1:n.classes){
       test<-tt.test[tt.test$INDEX==k,]
@@ -387,5 +407,6 @@ assess_overlap_shiny<-function(truth, prediction, conf.thresh=0.2, over1=0.5, ov
   res[[2]]<-out_classes
   res[[3]]<-FP_IDS
   res[[4]]<-index
+  res[[5]]<-pic_names
   res
 }

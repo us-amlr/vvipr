@@ -4,7 +4,17 @@
 \alias{plot_image_class}
 \title{plot_image_class}
 \usage{
-plot_image_class(dat1, dat2, dat3, conf.thresh, over1, over2, image, class)
+plot_image_class(
+  dat1,
+  dat2,
+  dat3,
+  dat4,
+  conf.thresh,
+  over1,
+  over2,
+  image,
+  class
+)
 }
 \arguments{
 \item{dat1}{List. The list of sf files that contain annotation polygons for the selected image and class}
@@ -12,6 +22,8 @@ plot_image_class(dat1, dat2, dat3, conf.thresh, over1, over2, image, class)
 \item{dat2}{Vector of polygon IDs for all false positive predictions.}
 
 \item{dat3}{Data frame listing object classes ('CLASS') and arbitrary numeric code ('INDEX')}
+
+\item{dat4}{Vector containing image names}
 
 \item{conf.thresh}{A numeric value from 0 to 0.99 that specifies the minimum value for including model predictions in the analysis. Predictions with confidence levels below the threshold will be eliminated from the analysis.}
 

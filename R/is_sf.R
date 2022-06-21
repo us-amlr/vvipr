@@ -5,6 +5,8 @@
 #' @param x R object to be tested
 #'
 #' @return Logical. The function returns T/F  
+#' 
+#' @export
 is_sf<-function(x){
   cc<-class(x)
   sfclass<-c("sf", "data.frame")

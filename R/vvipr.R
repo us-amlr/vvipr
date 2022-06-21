@@ -14,7 +14,7 @@
 vvipr<-function() {
   appDir <- system.file("shiny", package = "vvipr")
   if (appDir == "") {
-    stop("Could not find example directory. Try re-installing `photoR`.", call. = FALSE)
+    stop("Could not find example directory. Try re-installing `vvipr`.", call. = FALSE)
   }
   shiny::runApp(appDir, display.mode = "normal")
 }

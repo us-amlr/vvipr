@@ -1,6 +1,9 @@
 library(shiny)
+library(shinybusy)
 library(sf)
+#library(sfheaders)
 library(vvipr)
+library(dplyr)
 
 csv.accept <- c(
   "text/csv",
@@ -17,12 +20,20 @@ ui<-fluidPage(
       }
     "))
   ),
+  
+  ### Use shinybusy to indicate when plot work is being done
+  # Options: https://epic-spinners.epicmax.co/
+  shinybusy::add_busy_spinner(
+    spin = "double-bounce", position = "top-right", margin = c(20, 20),
+    height = "100px", width = "100px"
+  ),
+  
   sidebarLayout(
     sidebarPanel(
       h1("vvipr", style="text-align:center"),
       h2("Verify VIAME Predictions", style="text-align:center"),
       p(style="text-align:center", "Evauluate VIAME predictions against truth annotations"),
-      p(style="text-align:center","Last updated: 10 June 2022"),
+      p(style="text-align:center","Last updated: 21 June 2022"),
       
       fluidRow(
         column(6, fileInput(inputId="truth", label="1. Choose truth annotations",
@@ -79,6 +90,49 @@ ui<-fluidPage(
 
 
 server<-function(input, output, session){
+  #---------------------------------------------------------------------------- 
+  vals <- reactiveValues(
+    check_class_warning = NULL, 
+    assess_overlap_output = NULL
+  )
+  
+  ### Print relevant validate/error message(s) for assess_overlap
+  output$data_message_uiOut_text <- renderText({
+    validate(
+      need(input$truth, "Please upload a truth annotations file."),
+      need(input$prediction, "Please upload a model prediction file.")
+    )
+    
+    # # if using tryCatch():
+    # if (is.null(vals$assess_overlap_output)) {
+    #   validate("Please click 'Update results' button to generate outputs")
+    # } else if (inherits(vals$assess_overlap_output, "simpleError")) {
+    #   validate(vals$assess_overlap_output$message)
+    # } else if (inherits(vals$assess_overlap_output, "simpleWarning")) {
+    #   validate(vals$assess_overlap_output[[2]]$message)
+    # }
+    
+    # is using try()
+    if (is.null(vals$assess_overlap_output)) {
+      validate("Please click 'Update results' button to generate outputs")
+    } else {
+      validate(
+        need(vals$assess_overlap_output,
+             attr(vals$assess_overlap_output, "condition")$message)
+      )
+    }
+    
+    NULL
+  })
+  
+  ### Print relevant warnings pre - assess_overlap
+  output$check_class_warning_uiOut_text <- renderText({
+    # Only print warnings if vals$assess_overlap_output is truthy
+    req(vals$assess_overlap_output)
+    
+    # Print any warning messages in this reactiveValue
+    req(vals$check_class_warning)
+  })
   
   #-----------------------------------------------------------------------------
   # Render UIs
@@ -112,28 +166,26 @@ server<-function(input, output, session){
   #-----------------------------------------------------------------------------
   # Helpers
   NAMES<-c("DETECTION_ID", "PIC_NAME", "IMAGE", "TLX", "TLY", "BRX", "BRY",
-           "CONF", "TARGET", "CLASS", "CONF_2")
-  
+          "CONF", "TARGET", "CLASS", "CONF_2")
+  #
   func_image_name <- function(x) {
     z<-as.vector(table(x))
     rep(1:length(unique(x)), z)
   }
-  
+ 
   
   #-----------------------------------------------------------------------------
   # Process input CSVs
-  output$data_message_uiOut_text <- renderText({
-    validate(
-      need(input$truth, "Please upload a truth annotations file."),
-      need(input$prediction, "Please upload a model prediction file."),
-    )
-    
-    NULL
+  ### Reset output reactiveValues if new files are uploaded
+  observeEvent(c(input$truth, input$prediction), {
+    vals$assess_overlap_output <- NULL
   })
   
   data_truth <- reactive({
     truth <- read.csv(file=req(input$truth$datapath), skip=2, header=FALSE)
     names(truth)<-NAMES
+    # order truth on image to ensure consistent numbering between VIAME sequence and plotting here
+    truth<-truth[order(truth$IMAGE),]
     truth$IMAGE <- func_image_name(truth$IMAGE)
     truth
   })
@@ -141,49 +193,102 @@ server<-function(input, output, session){
   data_prediction <- reactive({
     prediction<-read.csv(file=req(input$prediction$datapath), skip=2, header=FALSE)
     names(prediction)<-NAMES
+    # order prediction on image to ensure consistent numbering between VIAME sequence and plotting here
+    prediction<-prediction[order(prediction$IMAGE),]
     truth <- data_truth()
-    # Why is this necessary?
+    # Why is this necessary? -- because each polygon needs a unique ID
     prediction$DETECTION_ID<-seq(from=max(truth$DETECTION_ID)+1000, by=1,
                                  length.out=length(prediction$IMAGE))
     prediction$IMAGE <- func_image_name(prediction$IMAGE)
-    
+
     prediction
   })
   
-  
   #-----------------------------------------------------------------------------
   # Run input data through vvipr functions, and create plots and tables
-  reac_func_output<-eventReactive(input$goButton, {
-    assess_overlap_shiny(
-      truth=data_truth(), prediction=data_prediction(),
-      conf.thresh=input$conf.thresh, over1=input$over1, over2=input$over2
+  # reac_func_output<-reactive({
+  observeEvent(input$goButton, {
+    truth <- data_truth()
+    pred <- data_prediction()
+    # if using try():
+    check.class <- !all(unique(truth$CLASS) %in% unique(pred$CLASS)) ||
+      !all(unique(pred$CLASS) %in% unique(truth$CLASS))
+    
+    vals$check_class_warning <- if (check.class) {
+      "warning message here"
+    } else {
+     NULL
+    }
+    
+    vals$assess_overlap_output <- try(
+      assess_overlap(
+        truth=input$truth$datapath, prediction=input$prediction$datapath,
+        conf.thresh=input$conf.thresh, over1=input$over1, over2=input$over2
+      ), 
+      silent = TRUE
     )
+    
+    # # if using tryCatch():
+    # vals$assess_overlap_output <- tryCatch({
+    #   assess_overlap(
+    #     truth=input$truth$datapath, prediction=input$prediction$datapath,
+    #     conf.thresh=input$conf.thresh, over1=input$over1, over2=input$over2
+    #   )
+    # }, 
+    # error = function(e) e, 
+    # warning = function(w) {
+    #   l.out <- list(
+    #     suppressWarnings(assess_overlap(
+    #       truth=input$truth$datapath, prediction=input$prediction$datapath,
+    #       conf.thresh=input$conf.thresh, over1=input$over1, over2=input$over2
+    #     )), 
+    #     w
+    #   )
+    #   class(l.out) <- c("list", class(w))
+    #   l.out
+    # })
+    
+  })
+  
+  assess_overlap_output_reac <- reactive({
+    # if using try():
+    req(vals$assess_overlap_output)
+    
+    # # if using tryCatch():
+    # req(vals$assess_overlap_output, 
+    #     !inherits(vals$assess_overlap_output, "simpleError"))
+    # if (inherits(vals$assess_overlap_output, "simpleWarning")) {
+    #   vals$assess_overlap_output[[1]]
+    # } else {
+    #   vals$assess_overlap_output
+    # }
   })
   
   output$result1<-renderTable({
-    reac_func_output()[[1]][1:3]
+    assess_overlap_output_reac()[[1]][1:3]
   }, striped=TRUE, caption="Input parameters")
   
   output$result2<-renderTable({
-    reac_func_output()[[1]][4:8]
+    assess_overlap_output_reac()[[1]][4:8]
   }, striped=TRUE, caption="Counts of false positives (FP), false negatives (FN), true positives (TP), total annotations (ANNO), and total predictions (PREDS)")
   
   output$result3<-renderTable({
-    reac_func_output()[[1]][9:12]
+    assess_overlap_output_reac()[[1]][9:12]
   }, striped=TRUE, caption="Performance scores for accuracy, precision, recall and F1")
   
   sf_out_reactive<-reactive({
     req(input$image, input$class)
-    plot.list<-reac_func_output()
-    
+    plot.list<-assess_overlap_output_reac()
     
     sf_data<-plot_image_class(
-      dat1=plot.list[[2]], dat2=plot.list[[3]], dat3=plot.list[[4]],
+      dat1=plot.list[[2]], dat2=plot.list[[3]], dat3=plot.list[[4]], dat4=plot.list[[5]],
       conf.thresh=input$conf.thresh, over1=input$over1, over2=input$over2,
       image=input$image, class=input$class)
     
     sf_data
   })
+  
+  
   output$plots<-renderPlot({
     
     
@@ -192,7 +297,7 @@ server<-function(input, output, session){
       need(class(sf_out)=="list", "Given input values, the target class is either not annotatated or not predicted for this image. No comparison is possible."),
     )
     
-    MAIN<-paste("Image: ", input$image,  "  Class: ", input$class, sep="")
+    MAIN<-paste("Image: ", input$image, " (", sf_out[[3]], ")  Class: ", input$class, sep="")
     t.col1<-adjustcolor(col="black", alpha.f=0.75)
     plot(sf_out[[1]][[1]]$geometry, border=1, col=t.col1, main=MAIN, xlim=sf_out[[2]][c(1,3)], ylim=sf_out[[2]][c(2,4)])
     t.col2<-adjustcolor(col="red", alpha.f=0.66)
@@ -209,7 +314,7 @@ server<-function(input, output, session){
       paste("vvipr_output_ct-", input$conf.thresh, ".csv", sep = "")
     },
     content = function(file) {
-      write.csv(reac_func_output()[[1]], file, row.names=FALSE)
+      write.csv(assess_overlap_output_reac()[[1]], file, row.names=FALSE)
     }
   )
 }
