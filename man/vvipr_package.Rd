@@ -11,7 +11,7 @@ Verify VIAME Predictions
 This package contains functions designed to assess predictions from trained classification models  that were developed in VIAME.
 }
 \seealso{
-\url{https://github.com/jthinke/vvipr}
+\url{https://github.com/us-amlr/vvipr}
 }
 \author{
 Jefferson Hinke \email{jefferson.hinke@noaa.gov}

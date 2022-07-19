@@ -15,4 +15,4 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.com/us-amlr/vvipr
 BugReports: https://github.com/us-amlr/vvipr/issues
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
