@@ -24,7 +24,7 @@ The analysis is only concerned with identifying false positives in the detection
 
 The analysis first looks for predictions whose bounding boxes do not overlap any truth annotations. Those are the easy-to-identify false positives. Their presence/absence can change with the the confidence threshold supplied (Step 3).
 
-The next steps iteratively assess how partial overlap of the truth and prediction bounding boxes should be treated. It is based on the areas of the truth and prediction bounding boxes, whether their overlap meets the threshold supplied, and deals with several possible configurations of overlap. 
+The next steps interactively assess how partial overlap of the truth and prediction bounding boxes should be treated. It is based on the areas of the truth and prediction bounding boxes, whether their overlap meets the threshold supplied, and deals with several possible configurations of overlap. 
 
 The first overlap parameter (Step 4) simply defines the proportion of the truth area that needs to be overlapped by a prediction area to qualify as a match. It is applied to scenarios with single and multiple overlaps of truth and predictions.
 
@@ -38,7 +38,7 @@ To install the latest version from GitHub:
 
  ```r
 install.packages("devtools")
-devtools::install_github("jthinke/vvipr")
+devtools::install_github("us-amlr/vvipr")
 ```
 
 ## Usage
@@ -48,7 +48,7 @@ devtools::install_github("jthinke/vvipr")
 vvipr::vvipr()
 ```
 
-2) There will be 2 data files to load. The first is the annotations representing the truth data (an example: [truth.csv](https://github.com/jthinke/vvipr/blob/main/inst/extdata/peng4_truth.csv)) and the second is the file containg the model predictions from the trained model (an example: [predictions.csv](https://github.com/jthinke/vvipr/blob/main/inst/extdata/peng4_detections.csv)). To load your own, navigate to where the data are housed and allow upload. 
+2) There will be 2 data files to load. The first is the annotations representing the truth data (an example: [truth.csv](https://github.com/us-amlr/vvipr/blob/main/inst/extdata/peng4_truth.csv)) and the second is the file contains the model predictions from the trained model (an example: [predictions.csv](https://github.com/us-amlr/vvipr/blob/main/inst/extdata/peng4_detections.csv)). To load your own, navigate to where the data are housed and allow upload. 
 
 3) Specify desired values for confidence thresholds and overlap proportions.
 
@@ -58,7 +58,7 @@ vvipr::vvipr()
 
 ## Citation
 
-Hinke JT, Giuseffi LM, Hermanson VR, Woodman SM, and Krause DJ. (in prep). Evaluating a machine learning approach to detect penguins and seals in thermal and color images collected with an unoccupied aerial system.
+Hinke JT, Giuseffi LM, Hermanson VR, Woodman SM, and Krause DJ. (in review). Evaluating a machine learning approach to detect penguins and seals in thermal and color images collected with an unoccupied aerial system.
 
 ## Disclaimer
 
