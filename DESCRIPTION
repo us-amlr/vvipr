@@ -12,6 +12,8 @@ Imports:
     shiny,
     shinybusy,
     sf
+Suggests:
+    pkgload
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/us-amlr/vvipr
