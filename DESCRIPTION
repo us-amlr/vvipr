@@ -8,8 +8,9 @@ Description: This is the description of the package.
 License: CC0
 Depends: R (>= 4.2)
 Imports: 
-    dplyr, 
-    shiny, 
+    dplyr,
+    shiny,
+    shinybusy,
     sf
 Encoding: UTF-8
 LazyData: true

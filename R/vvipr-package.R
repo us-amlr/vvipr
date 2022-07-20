@@ -8,6 +8,8 @@
 #' @title Verify VIAME Predictions
 #' @author Jefferson Hinke \email{jefferson.hinke@noaa.gov}
 #' @seealso \url{https://github.com/us-amlr/vvipr}
+#' 
+#' @import shiny
 #'
 #' @importFrom dplyr %>% .data group_by summarise
 #' @importFrom sf st_bbox st_intersects st_intersection st_area st_as_sf 
