@@ -223,7 +223,6 @@ assess_overlap<-function(truth, prediction, conf.thresh=0.2, over1=0.5, over2=0.
       t.dat<-dat[[j]]
       t.dat.dim<-dim(t.dat)[1]
       t.dat.dim<-ifelse(is.null(t.dat.dim),0,t.dat.dim)
-      browser()
       if(!inherits(t.dat, "sf")|t.dat.dim==0){
         # if a particular class has no observations, assign 0 false positives to it's space
         fps[j]<-0
