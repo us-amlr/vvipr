@@ -4,7 +4,10 @@
 \alias{vvipr}
 \title{vvipr}
 \usage{
-vvipr()
+vvipr(...)
+}
+\arguments{
+\item{...}{passed to \code{\link[shiny]{shinyApp}}}
 }
 \value{
 The app returns a data frame for download as a .csv file, if desired. The data frame combines the three tables displayed by the app and include the input values used, the counts of annotations, predictions, true and false positives, and the performance scores. These data reflect the performance of the model as a whole.
@@ -18,4 +21,8 @@ The Verify VIAME Prediction (vvipr) code was developed as a Shiny app to quantif
 The code takes two files as input. One is the set of truth annotations, the other is the set of predictions from a trained model applied to the same images for which the truth annotations exist. The user can select appropriate cut-offs for retention of model predictions based on the confidence threshold assigned to predictions by the model. The user can also adjust the amount of overlap between truth and prediction bounding boxes that is required to classify detections as true positives (TP), false positives (FP), or false negatives (FN). The code will compute 4 model performance metrics: accuracy, precision, recall, and the F1 score.
 
 Once the app is open, select appropriate input .csv files, set appropriate thresholds, and behold the overlap.
+}
+\examples{
+if (interactive()) vvipr()
+
 }

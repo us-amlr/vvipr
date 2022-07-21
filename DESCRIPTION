@@ -1,6 +1,6 @@
 Package: vvipr
 Title: Verify VIAME Predictions
-Version: 0.3.3.9000
+Version: 0.4.0.9000
 Authors@R: 
     c(person("Jefferson", "Hinke", email = "jefferson.hinke@noaa.gov", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-3600-1414")),
       person("Sam", "Woodman", email = "sam.woodman@noaa.gov", role = c("aut"), comment = c(ORCID = "0000-0001-6071-8186")))
@@ -8,9 +8,12 @@ Description: This is the description of the package.
 License: CC0
 Depends: R (>= 4.2)
 Imports: 
-    dplyr, 
-    shiny, 
+    dplyr,
+    shiny,
+    shinybusy,
     sf
+Suggests:
+    pkgload
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/us-amlr/vvipr
