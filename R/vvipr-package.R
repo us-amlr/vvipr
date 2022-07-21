@@ -14,7 +14,9 @@
 #' @importFrom dplyr %>% .data group_by summarise
 #' @importFrom sf st_bbox st_intersects st_intersection st_area st_as_sf 
 #'   st_convex_hull st_sf
+#' @importFrom graphics box legend
 #' @importFrom grDevices col2rgb rgb adjustcolor
 #' @importFrom stats uniroot
+#' @importFrom utils read.csv write.csv
 #' @keywords package
 NULL
