@@ -58,7 +58,7 @@ vvipr::vvipr()
 
 ## Citation
 
-Hinke JT, Giuseffi LM, Hermanson VR, Woodman SM, and Krause DJ. 2022. Evaluating a machine learning approach to detect penguins and seals in thermal and color images collected with an unoccupied aerial system. Drones 6:255. [https://doi.org/10.3390/drones6090255](https://doi.org/10.3390/drones6090255)
+Hinke JT, Giuseffi LM, Hermanson VR, Woodman SM, and Krause DJ. 2022. Evaluating thermal and color sensors for automating detection of penguins and pinnipeds in images collected with an unoccupied aerial system. Drones 6:255. [https://doi.org/10.3390/drones6090255](https://doi.org/10.3390/drones6090255)
 
 ## Disclaimer
 
